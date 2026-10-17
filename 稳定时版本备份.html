@@ -1,0 +1,4491 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>艾尔森公寓 · Elsen Apartment</title>
+<style>
+/* ================= 基础 ================= */
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;background:#04060a}
+body{
+  font-family:Georgia,"Songti SC","STSong","SimSun",serif;
+  color:#d8cfb2;
+  -webkit-tap-highlight-color:transparent;
+  user-select:none;
+  -webkit-user-select:none;
+}
+
+/* ================= 场景容器 ================= */
+.scene{
+  position:fixed;inset:0;
+  opacity:0;pointer-events:none;
+  transform:scale(1.08);
+  transition:opacity 1.2s ease, transform 2.2s cubic-bezier(.2,.7,.3,1);
+  filter:sepia(.14) saturate(.85) contrast(1.06);
+  will-change:opacity,transform;
+}
+.scene.active{opacity:1;pointer-events:auto;transform:scale(1)}
+.scene svg{width:100%;height:100%;display:block}
+
+/* ================= 噪点 & 暗角 ================= */
+.grain{
+  position:fixed;inset:-120px;z-index:80;pointer-events:none;opacity:.06;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/></filter><rect width='300' height='300' filter='url(%23n)'/></svg>");
+  animation:grainShift .6s steps(2,end) infinite;
+}
+@keyframes grainShift{
+  0%,100%{transform:translate(0,0)}
+  20%{transform:translate(-4%,3%)}
+  40%{transform:translate(3%,-4%)}
+  60%{transform:translate(-3%,-2%)}
+  80%{transform:translate(4%,2%)}
+}
+.vignette{
+  position:fixed;inset:0;z-index:81;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 45%,transparent 28%,rgba(0,0,0,.5) 78%,rgba(0,0,0,.92) 100%);
+}
+
+/* ================= 提示文字 ================= */
+.hint{
+  position:absolute;left:50%;bottom:6%;transform:translateX(-50%);
+  font-size:clamp(11px,1.4vw,15px);letter-spacing:.5em;text-indent:.5em;
+  color:#9aa89c;opacity:.55;pointer-events:none;
+  animation:breathe 3.4s ease-in-out infinite;white-space:nowrap;
+}
+@keyframes breathe{0%,100%{opacity:.22}50%{opacity:.75}}
+.scene-title{
+  position:absolute;left:50%;top:8%;transform:translateX(-50%);
+  font-size:clamp(14px,2.2vw,26px);letter-spacing:.8em;text-indent:.8em;
+  color:#b9ad86;opacity:.5;pointer-events:none;white-space:nowrap;
+  text-shadow:0 0 22px rgba(0,0,0,.9);
+}
+
+/* 窗户闪烁 */
+.win{animation:winFlicker 8s ease-in-out infinite}
+.win:nth-of-type(2n){animation-delay:-2.6s}
+.win:nth-of-type(3n){animation-delay:-5.1s}
+@keyframes winFlicker{
+  0%,100%{opacity:1}
+  42%{opacity:1}
+  44%{opacity:.62}
+  46%{opacity:1}
+  71%{opacity:.85}
+  73%{opacity:1}
+}
+
+/* 门呼吸光 */
+#house-door{cursor:pointer}
+#house-door .door-glow{animation:doorPulse 3.6s ease-in-out infinite}
+@keyframes doorPulse{0%,100%{opacity:.25}50%{opacity:.7}}
+
+/* ================= 房间 ================= */
+.room{position:absolute;inset:0;overflow:hidden}
+
+.room-wall{
+  position:absolute;left:0;top:0;width:100%;height:78%;
+  background-color:#5a4836;
+  background-image:
+    radial-gradient(circle at 50% 50%,rgba(255,236,190,.06) 0 3px,transparent 4px),
+    repeating-linear-gradient(45deg,rgba(0,0,0,.05) 0 1px,transparent 1px 26px),
+    repeating-linear-gradient(-45deg,rgba(0,0,0,.05) 0 1px,transparent 1px 26px);
+  background-size:52px 52px,auto,auto;
+  box-shadow:inset 0 0 240px rgba(0,0,0,.88);
+}
+.room-baseboard{
+  position:absolute;left:0;top:78%;width:100%;height:2.6%;
+  background:linear-gradient(#2c2117,#171008);
+}
+.room-floor{
+  position:absolute;left:0;top:80.6%;width:100%;height:19.4%;
+  background:
+    repeating-linear-gradient(90deg,rgba(0,0,0,.45) 0 2px,transparent 2px 68px),
+    linear-gradient(#3b2a1b,#160e07);
+}
+.room-floor::after{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 0%,rgba(255,210,130,.10),transparent 65%);
+}
+
+/*窗*/
+/* ================= 沙龙式画墙 ================= */
+/* 墙面柔和光影 */
+.room-wall::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 60% 45% at 50% 32%, rgba(255,225,170,.16), transparent 62%),
+    radial-gradient(ellipse 40% 30% at 16% 78%, rgba(255,205,150,.07), transparent 58%),
+    radial-gradient(ellipse 40% 30% at 84% 78%, rgba(255,205,150,.07), transparent 58%);
+}
+
+/* 椭圆画框 */
+.frame.oval{
+  border-radius:50%;
+}
+.frame.oval::before{border-radius:50%;inset:2px}
+.frame.oval .art{
+  border-radius:50%;
+  font-size:clamp(12px,1.4vw,20px);
+}
+
+/* 装饰画框：不可点，样式压暗 */
+.frame.deco{
+  cursor:default;
+  background:linear-gradient(135deg,#7a5f30,#4a3618 30%,#8d7140 55%,#3d2c14 80%,#6a5128);
+  padding:5px;
+  box-shadow:
+    0 6px 16px rgba(0,0,0,.7),
+    0 0 0 1px rgba(20,14,6,.9),
+    inset 0 0 0 1px rgba(40,28,12,.7),
+    inset 0 0 0 2px rgba(150,120,70,.25);
+}
+.frame.deco::before{inset:2px}
+.frame.deco:hover{transform:none;box-shadow:
+  0 6px 16px rgba(0,0,0,.7),
+  0 0 0 1px rgba(20,14,6,.9),
+  inset 0 0 0 1px rgba(40,28,12,.7),
+  inset 0 0 0 2px rgba(150,120,70,.25);
+}
+.frame.deco .art{
+  background:radial-gradient(ellipse at 50% 40%,#2a2218,#080604 72%);
+  color:#7a6038;
+  font-size:clamp(10px,1.1vw,15px);
+  box-shadow:inset 0 0 18px rgba(0,0,0,.95);
+  text-shadow:0 0 8px rgba(140,110,60,.4);
+}
+
+/* 小画框上的花朵缩小 */
+.frame.small .flower{width:24px;height:24px}
+.frame.small .flower.tl{left:-9px;top:-9px}
+.frame.small .flower.tr{right:-9px;top:-9px}
+.frame.small .flower.bl{left:-9px;bottom:-9px}
+.frame.small .flower.br{right:-9px;bottom:-9px}
+
+/* 画框 */
+/* ================= 雕花复古细框 + 藤蔓荆棘玫瑰 ================= */
+.frame{
+  position:absolute;cursor:pointer;
+  padding:5px;border-radius:1px;
+  background:
+    linear-gradient(135deg,#c9a565,#8a6b35 25%,#d4b070 50%,#6b5128 75%,#b8985a);
+  box-shadow:
+    0 12px 28px rgba(0,0,0,.75),
+    0 0 0 1px rgba(20,14,6,.9),
+    inset 0 0 0 1px rgba(190,160,95,.55),
+    inset 0 0 0 2px rgba(40,28,12,.6),
+    inset 0 0 0 3px rgba(190,160,95,.25);
+  transition:transform .35s cubic-bezier(.2,.8,.3,1),box-shadow .35s;
+}
+.frame::before{
+  content:'';position:absolute;inset:2px;pointer-events:none;
+  border:1px solid rgba(50,34,14,.55);
+}
+/* 雕花浮雕感（细密刻纹） */
+.frame::after{
+  content:'';position:absolute;inset:0;pointer-events:none;border-radius:1px;
+  background:
+    repeating-linear-gradient(45deg,transparent 0 3px,rgba(60,40,15,.16) 3px 4px),
+    repeating-linear-gradient(-45deg,transparent 0 3px,rgba(60,40,15,.16) 3px 4px);
+  mix-blend-mode:multiply;opacity:.55;
+}
+.frame:hover{
+  transform:translateY(-5px) scale(1.025);
+  box-shadow:
+    0 20px 42px rgba(0,0,0,.85),
+    0 0 28px rgba(210,170,90,.35),
+    0 0 0 1px rgba(20,14,6,.9),
+    inset 0 0 0 1px rgba(190,160,95,.65),
+    inset 0 0 0 2px rgba(40,28,12,.6),
+    inset 0 0 0 3px rgba(190,160,95,.35);
+}
+.frame:active{transform:translateY(-2px) scale(.99)}
+.frame .art{
+  width:100%;height:100%;
+  background:radial-gradient(ellipse at 50% 38%,#3c3329,#0d0a07 72%);
+  display:flex;align-items:center;justify-content:center;
+  font-size:clamp(13px,1.7vw,26px);
+  color:#b99a58;letter-spacing:.1em;
+  box-shadow:inset 0 0 34px rgba(0,0,0,.95);
+  text-shadow:0 0 14px rgba(185,154,88,.5);
+  position:relative;z-index:1;
+}
+
+/* --- 方框：四角藤蔓荆棘玫瑰 --- */
+.frame .vine{
+  position:absolute;width:46px;height:46px;
+  pointer-events:none;z-index:2;
+  filter:drop-shadow(0 3px 5px rgba(0,0,0,.8));
+}
+.frame .vine.tl{left:-12px;top:-12px}
+.frame .vine.tr{right:-12px;top:-12px;transform:scaleX(-1)}
+.frame .vine.bl{left:-12px;bottom:-12px;transform:scaleY(-1)}
+.frame .vine.br{right:-12px;bottom:-12px;transform:scale(-1,-1)}
+
+/* --- 椭圆：上下弧形花环 --- */
+.frame .flourish{
+  position:absolute;left:50%;
+  width:72%;height:30px;
+  pointer-events:none;z-index:2;
+  filter:drop-shadow(0 3px 5px rgba(0,0,0,.8));
+}
+.frame .flourish.top{top:-16px;transform:translateX(-50%)}
+.frame .flourish.bottom{bottom:-16px;transform:translateX(-50%) scaleY(-1)}
+
+/* --- 椭圆画框本体 --- */
+.frame.oval{
+  border-radius:50%;padding:5px;
+}
+.frame.oval::before{border-radius:50%;inset:2px}
+.frame.oval::after{display:none}
+.frame.oval .art{
+  border-radius:50%;
+  font-size:clamp(12px,1.4vw,20px);
+}
+
+/* --- 方形画框（近正比） --- */
+.frame.square{
+  padding:6px;
+aspect-ratio:1 / 1;
+}
+.frame.square::before{inset:3px}
+
+/* 边桌 */
+.room-table{
+  position:absolute;left:35%;top:66%;width:30%;height:13%;
+  background:linear-gradient(#4b3625,#281a0f);
+  border-top:5px solid #5f452c;
+  box-shadow:0 18px 34px rgba(0,0,0,.8);
+}
+.room-table::after{
+  content:'';position:absolute;left:12%;bottom:-6px;width:76%;height:6px;
+  background:rgba(0,0,0,.6);filter:blur(5px);
+}
+
+/* ================= 返回按钮 ================= */
+#backBtn{
+  position:fixed;left:22px;top:20px;z-index:60;
+  padding:9px 18px;font-size:13px;letter-spacing:.22em;
+  color:#a99a72;background:rgba(10,10,8,.55);
+  border:1px solid rgba(160,140,95,.35);
+  border-radius:2px;cursor:pointer;
+  font-family:inherit;
+  opacity:0;pointer-events:none;
+  transition:opacity .5s,background .3s,color .3s;
+  backdrop-filter:blur(4px);
+}
+#backBtn.show{opacity:1;pointer-events:auto}
+#backBtn:hover{background:rgba(40,34,22,.8);color:#e2d4ab}
+
+/* ================= 弹层 ================= */
+/* ================= 弹层 ================= */
+.overlay{
+  position:fixed;inset:0;z-index:70;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(2,3,4,.85);
+  backdrop-filter:blur(4px);
+  opacity:0;pointer-events:none;
+  transition:opacity .45s ease;
+  padding:24px;
+}
+.overlay.show{opacity:1;pointer-events:auto}
+
+/* ---------- 通用：旧纸 / 羊皮纸质感 ---------- */
+.paper-skin{
+  position:relative;
+  background-color:#e6d3a5;
+  background-image:
+    radial-gradient(ellipse at 5% 5%, rgba(90,55,20,.28), transparent 34%),
+    radial-gradient(ellipse at 95% 6%, rgba(90,55,20,.24), transparent 34%),
+    radial-gradient(ellipse at 5% 95%, rgba(90,55,20,.30), transparent 34%),
+    radial-gradient(ellipse at 95% 94%, rgba(90,55,20,.24), transparent 34%),
+    radial-gradient(ellipse 240px 160px at 28% 30%, rgba(150,110,55,.10), transparent 72%),
+    radial-gradient(ellipse 280px 200px at 76% 72%, rgba(120,80,40,.10), transparent 72%),
+    repeating-linear-gradient(92deg, rgba(120,90,50,.028) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(2deg, rgba(120,90,50,.02) 0 1px, transparent 1px 6px);
+  color:#3a2a18;
+  box-shadow:
+    inset 0 0 60px rgba(90,55,20,.28),
+    inset 0 0 130px rgba(70,40,15,.18),
+    0 34px 90px rgba(0,0,0,.92),
+    0 0 0 1px rgba(60,36,15,.55);
+  border:none;
+}
+/* 纸面磨损小点 */
+.paper-skin::before{
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:6;
+  background:
+    radial-gradient(circle at 2% 4%, rgba(40,25,10,.55) 0 1.2px, transparent 2px),
+    radial-gradient(circle at 98% 6%, rgba(40,25,10,.45) 0 1px, transparent 2px),
+    radial-gradient(circle at 4% 97%, rgba(40,25,10,.5) 0 1.2px, transparent 2px),
+    radial-gradient(circle at 97% 96%, rgba(40,25,10,.45) 0 1px, transparent 2px),
+    radial-gradient(circle at 12% 30%, rgba(40,25,10,.35) 0 .8px, transparent 1.4px),
+    radial-gradient(circle at 88% 42%, rgba(40,25,10,.4) 0 .8px, transparent 1.4px);
+  mix-blend-mode:multiply;opacity:.75;
+}
+
+/* ---------- OC 卡：手绘羊皮纸 ---------- */
+.card{
+  position:relative;
+  width:min(720px,94vw);max-height:86vh;overflow-y:auto;
+  padding:50px 56px 46px;
+  transform:translateY(26px) scale(.96) rotate(-.4deg);
+  transition:transform .55s cubic-bezier(.2,.8,.3,1);
+
+  /* 羊皮纸：层层污渍 + 纸纤维 */
+  background-color:#cdb88a;
+  background-image:
+    radial-gradient(ellipse 240px 180px at 10% 14%, rgba(70,50,22,.30), transparent 68%),
+    radial-gradient(ellipse 200px 160px at 90% 18%, rgba(85,62,28,.26), transparent 68%),
+    radial-gradient(ellipse 280px 220px at 82% 86%, rgba(65,45,20,.28), transparent 70%),
+    radial-gradient(ellipse 180px 140px at 16% 90%, rgba(70,48,22,.30), transparent 68%),
+    radial-gradient(ellipse 320px 220px at 50% 46%, rgba(215,192,144,.55), rgba(200,175,125,.18) 60%, transparent 82%),
+    radial-gradient(circle at 50% 50%, #d7c396 0%, #c8b282 52%, #a68e5c 100%),
+    repeating-linear-gradient(88deg, rgba(95,68,32,.03) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(2deg, rgba(95,68,32,.025) 0 1px, transparent 1px 8px);
+
+  box-shadow:
+    inset 0 0 70px rgba(70,42,14,.45),
+    inset 0 0 150px rgba(55,32,10,.30),
+    inset 0 0 0 1px rgba(70,42,16,.45),
+    0 34px 90px rgba(0,0,0,.9);
+
+  color:#2a1a0a;
+  border:none;
+}
+.overlay.show .card{transform:translateY(0) scale(1) rotate(0deg)}
+
+/* 四角焦痕（内侧，乘性叠加） */
+.card::after{
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:3;
+  background:
+    radial-gradient(ellipse 140px 120px at 0% 0%, rgba(35,18,5,.6), transparent 70%),
+    radial-gradient(ellipse 140px 120px at 100% 0%, rgba(35,18,5,.55), transparent 70%),
+    radial-gradient(ellipse 140px 120px at 0% 100%, rgba(35,18,5,.65), transparent 70%),
+    radial-gradient(ellipse 140px 120px at 100% 100%, rgba(35,18,5,.55), transparent 70%);
+  mix-blend-mode:multiply;
+}
+/* 纸面颗粒 */
+.card::before{
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:2;
+  background:
+    radial-gradient(circle at 6% 8%, rgba(45,28,10,.55) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 93% 11%, rgba(45,28,10,.45) 0 .8px, transparent 1.4px),
+    radial-gradient(circle at 8% 92%, rgba(45,28,10,.5) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 91% 89%, rgba(45,28,10,.45) 0 .8px, transparent 1.4px),
+    radial-gradient(circle at 33% 27%, rgba(45,28,10,.32) 0 .7px, transparent 1.2px),
+    radial-gradient(circle at 71% 61%, rgba(45,28,10,.35) 0 .7px, transparent 1.2px),
+    radial-gradient(circle at 47% 78%, rgba(45,28,10,.3) 0 .6px, transparent 1.1px);
+  mix-blend-mode:multiply;opacity:.8;
+}
+
+/* 手绘墨线双框（靠 filter 抖动） */
+.card .ink-frame{
+  position:absolute;inset:18px;pointer-events:none;z-index:4;
+  border:1.4px solid rgba(58,38,18,.8);
+  filter:url(#roughink);
+}
+.card .ink-frame-inner{
+  position:absolute;inset:24px;pointer-events:none;z-index:4;
+  border:.8px solid rgba(58,38,18,.42);
+  filter:url(#roughink2);
+}
+
+/* 四角手绘藤蔓 */
+.card .corner-vine{
+  position:absolute;width:78px;height:78px;
+  pointer-events:none;z-index:5;
+  color:#3a2614;
+}
+.card .corner-vine.tl{left:-2px;top:-2px}
+.card .corner-vine.tr{right:-2px;top:-2px;transform:scaleX(-1)}
+.card .corner-vine.bl{left:-2px;bottom:-2px;transform:scaleY(-1)}
+.card .corner-vine.br{right:-2px;bottom:-2px;transform:scale(-1,-1)}
+
+/* 滚动条 */
+.card::-webkit-scrollbar{width:6px}
+.card::-webkit-scrollbar-thumb{background:rgba(80,50,20,.5);border-radius:3px}
+.card::-webkit-scrollbar-track{background:rgba(80,50,20,.1)}
+
+/* 内容层（压在装饰之上） */
+.card > *:not(.ink-frame):not(.ink-frame-inner):not(.corner-vine){position:relative;z-index:2}
+
+.card-title{
+  font-size:11px;letter-spacing:.5em;color:#6a4318;
+  margin-bottom:12px;text-transform:uppercase;font-weight:bold;
+}
+.card-name{
+  font-size:clamp(20px,3.2vw,28px);letter-spacing:.14em;
+  color:#241505;margin-bottom:6px;font-weight:400;
+}
+.card-sub{
+  font-size:12px;letter-spacing:.28em;color:#7a5218;margin-bottom:22px;
+  font-style:italic;
+}
+.card-line{
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(80,50,20,.55),transparent);
+  margin:16px 0 20px;
+}
+.row{display:flex;gap:16px;padding:8px 0;border-bottom:1px dashed rgba(80,50,20,.35)}
+.row:last-child{border-bottom:none}
+.row dt{
+  flex:0 0 72px;font-size:12px;letter-spacing:.2em;color:#6a4318;
+  padding-top:2px;font-weight:bold;
+}
+.row dd{
+  flex:1;font-size:14px;line-height:1.9;color:#2a1a0a;letter-spacing:.03em;
+}
+.close{
+ position:absolute;right:20px;top:-10px;z-index:8;
+  width:32px;height:32px;line-height:1;
+  background:rgba(200,175,125,.35);
+  border:1px solid rgba(80,50,20,.5);
+  color:#5a3510;font-size:15px;cursor:pointer;
+  font-family:inherit;transition:.3s;border-radius:1px;
+}
+.close:hover{background:rgba(90,55,20,.25);color:#241505}
+
+/* 身份证明布局 */
+.id-body{display:flex;gap:30px;align-items:flex-start}
+.id-portrait{
+  flex:0 0 150px;display:flex;flex-direction:column;align-items:center;gap:10px;
+}
+.portrait-frame{
+  width:150px;height:180px;padding:7px;position:relative;
+  background:linear-gradient(135deg,#a98950,#6b5128 30%,#b8985a 55%,#5a4220 80%,#8d7140);
+  box-shadow:
+    inset 0 0 0 1px rgba(40,28,12,.7),
+    0 6px 20px rgba(0,0,0,.5),
+    0 0 0 1px rgba(60,36,15,.65);
+}
+.portrait-frame::before{
+  content:'';position:absolute;inset:2px;
+  border:1px solid rgba(50,34,14,.5);pointer-events:none;
+}
+.portrait-inner{
+  width:100%;height:100%;
+  background:radial-gradient(ellipse at 50% 38%,#4a3c2a,#1a120a 72%);
+  display:flex;align-items:center;justify-content:center;
+  font-size:44px;color:#c8ab6a;letter-spacing:.1em;
+  box-shadow:inset 0 0 26px rgba(0,0,0,.95);
+  text-shadow:0 0 18px rgba(200,170,100,.55);
+  background-size:cover;background-position:center;
+}
+.portrait-label{
+  font-size:9px;letter-spacing:.45em;color:#6a4318;
+  text-indent:.45em;text-transform:uppercase;
+}
+.id-info{flex:1;min-width:0}
+
+/* ---------- 个人简介：住户登记证明 ---------- */
+.bio-card{
+  position:relative;
+  width:min(640px,94vw);max-height:88vh;overflow-y:auto;
+  padding:38px 42px 34px;
+  transform:translateY(30px) scale(.95) rotate(-.35deg);
+  transition:transform .6s cubic-bezier(.2,.8,.3,1);
+}
+.overlay.show .bio-card{transform:translateY(0) scale(1) rotate(0deg)}
+.bio-card::-webkit-scrollbar{width:6px}
+.bio-card::-webkit-scrollbar-thumb{background:rgba(80,50,20,.42);border-radius:3px}
+.bio-card > *{position:relative;z-index:2}
+
+.bio-card .paper-shade{
+  position:absolute;inset:0;pointer-events:none;z-index:1;
+  background:
+    linear-gradient(to bottom, rgba(60,35,12,.22), transparent 8%),
+    linear-gradient(to top, rgba(60,35,12,.26), transparent 10%);
+}
+
+/* 页眉 */
+.bio-header{text-align:center;margin-bottom:22px}
+.bio-header-line{
+  height:1px;
+  background:linear-gradient(90deg,
+    transparent,
+    rgba(80,50,20,.55) 20%,
+    rgba(80,50,20,.55) 80%,
+    transparent);
+  margin:6px 0;
+}
+.bio-header-title{
+  font-size:14px;letter-spacing:.42em;color:#2a1a0a;
+  text-indent:.42em;padding:4px 0;font-weight:bold;
+}
+.bio-header-sub{
+  font-size:9px;letter-spacing:.38em;color:#7a5a30;
+  text-indent:.38em;margin-bottom:2px;
+}
+
+/* 主体：左头像 + 右信息 */
+.bio-body{
+  display:flex;gap:26px;align-items:flex-start;
+  margin-bottom:20px;padding-bottom:18px;
+  border-bottom:1px dashed rgba(90,60,25,.35);
+}
+.bio-portrait-col{
+  flex:0 0 128px;display:flex;flex-direction:column;
+  align-items:center;gap:9px;
+}
+.bio-portrait-col .portrait-frame{width:128px;height:154px;padding:6px}
+.bio-portrait-col .portrait-inner{font-size:34px}
+
+.bio-info-col{flex:1;min-width:0;padding-top:2px}
+.bio-row{display:flex;gap:14px;padding:6px 0;align-items:baseline}
+.bio-key{
+  flex:0 0 76px;font-size:11px;letter-spacing:.24em;color:#6a4a20;
+  text-indent:.24em;font-weight:bold;
+}
+.bio-val{
+  flex:1;font-size:14px;color:#2a1a0a;letter-spacing:.03em;
+  border-bottom:1px solid rgba(90,60,25,.28);
+  padding-bottom:3px;line-height:1.6;
+}
+
+/* 段落区 */
+.bio-section{margin-bottom:18px}
+.bio-section-label{
+  font-size:10px;letter-spacing:.36em;color:#6a4a20;
+  text-indent:.36em;margin-bottom:10px;padding-bottom:5px;
+  border-bottom:1px solid rgba(90,60,25,.28);
+  display:inline-block;min-width:60%;
+}
+.bio-text{
+  font-size:13.5px;line-height:2;color:#3a2a18;letter-spacing:.03em;
+  font-style:italic;
+}
+.bio-list{
+  list-style:none;font-size:13.5px;line-height:2.05;color:#3a2a18;
+  letter-spacing:.03em;
+}
+.bio-list li{padding-left:18px;position:relative}
+.bio-list li::before{
+  content:'◆';position:absolute;left:0;top:0;
+  font-size:9px;color:#8a5a28;
+}
+
+/* 底部：印章 + 签名 */
+.bio-footer{
+  margin-top:22px;padding-top:18px;
+  border-top:1px dashed rgba(90,60,25,.35);
+  display:flex;justify-content:space-between;align-items:flex-end;gap:20px;
+}
+.bio-stamp{
+  width:76px;height:76px;border-radius:50%;
+  border:2px solid rgba(150,40,30,.7);
+  display:flex;align-items:center;justify-content:center;
+  transform:rotate(-9deg);color:rgba(150,40,30,.82);
+  box-shadow:inset 0 0 0 1px rgba(150,40,30,.35);
+  flex:0 0 auto;
+}
+.bio-stamp-inner{text-align:center;line-height:1.1}
+.bio-stamp-top{font-size:8px;letter-spacing:.22em;text-indent:.22em}
+.bio-stamp-mid{font-size:12px;line-height:1.1;margin:1px 0}
+.bio-stamp-bot{font-size:8px;letter-spacing:.3em;text-indent:.3em}
+
+.bio-sign{flex:1;max-width:240px}
+.bio-sign-line{height:1px;background:rgba(80,50,20,.5);margin-bottom:6px}
+.bio-sign-text{
+  font-size:9px;letter-spacing:.32em;color:#7a5a30;
+  text-indent:.32em;text-align:right;
+}
+
+/* ================= 房间切换箭头 ================= */
+.room-nav{
+  position:fixed;top:50%;transform:translateY(-50%);
+  z-index:60;
+  width:52px;height:72px;
+  background:rgba(10,10,8,.42);
+  border:1px solid rgba(160,140,95,.35);
+  color:#c9b88a;
+  font-size:26px;line-height:1;
+  cursor:pointer;font-family:inherit;
+  transition:opacity .35s,background .3s,color .3s;
+  backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;
+}
+.room-nav.show{opacity:1;pointer-events:auto}
+.room-nav:hover{background:rgba(40,34,22,.78);color:#e8d9ac}
+.room-nav.left{left:22px}
+.room-nav.right{right:22px}
+
+/* ================= 其他房间墙色 ================= */
+#scene-room2 .room-wall{
+  background-color:#583628;
+  background-image:
+    repeating-linear-gradient(45deg, rgba(150,90,40,.10) 0 1px, transparent 1px 22px),
+    repeating-linear-gradient(-45deg, rgba(150,90,40,.10) 0 1px, transparent 1px 22px),
+    radial-gradient(ellipse 60% 45% at 50% 30%, rgba(255,200,140,.20), transparent 62%);
+  background-size:auto,auto,auto;
+}
+#scene-room2 .room-floor{
+  background:
+    repeating-linear-gradient(90deg, rgba(0,0,0,.45) 0 2px, transparent 2px 68px),
+    linear-gradient(#4a2c1a,#180c06);
+}
+
+#scene-room3 .room-wall{
+  background-color:#3a3242;
+  background-image:
+    repeating-linear-gradient(45deg, rgba(90,70,110,.10) 0 1px, transparent 1px 26px),
+    repeating-linear-gradient(-45deg, rgba(90,70,110,.10) 0 1px, transparent 1px 26px),
+    radial-gradient(ellipse 60% 45% at 50% 28%, rgba(200,190,220,.16), transparent 62%);
+}
+#scene-room3 .room-floor{
+  background:
+    repeating-linear-gradient(90deg, rgba(0,0,0,.45) 0 2px, transparent 2px 66px),
+    linear-gradient(#2a2230,#0a060e);
+}
+
+#scene-room4 .room-wall{
+  background-color:#3a4448;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(180,200,210,.12) 0 1px, transparent 1px 30px),
+    repeating-linear-gradient(90deg, rgba(180,200,210,.12) 0 1px, transparent 1px 30px),
+    radial-gradient(ellipse 60% 45% at 50% 28%, rgba(190,220,235,.16), transparent 62%);
+}
+#scene-room4 .room-floor{
+  background:
+    repeating-linear-gradient(0deg, rgba(180,200,210,.06) 0 1px, transparent 1px 22px),
+    repeating-linear-gradient(90deg, rgba(180,200,210,.06) 0 1px, transparent 1px 22px),
+    linear-gradient(#2a3438,#080e10);
+}
+
+#scene-room5 .room-wall{
+  background-color:#4a1a1a;
+  background-image:
+    repeating-linear-gradient(45deg, rgba(120,30,30,.12) 0 1px, transparent 1px 24px),
+    repeating-linear-gradient(-45deg, rgba(120,30,30,.12) 0 1px, transparent 1px 24px),
+    radial-gradient(ellipse 60% 45% at 50% 30%, rgba(255,120,100,.16), transparent 62%);
+}
+#scene-room5 .room-floor{
+  background:
+    repeating-linear-gradient(90deg, rgba(0,0,0,.5) 0 2px, transparent 2px 64px),
+    linear-gradient(#3a1a12,#120604);
+}
+
+/* ================= 家具 ================= */
+
+/* ---- 书架 ---- */
+.shelf{
+  position:absolute;
+  background:
+    linear-gradient(180deg,#6a3f22 0%,#4a2a14 15%,#3a2010 100%);
+  border:3px solid #1a0e06;
+  border-radius:2px;
+  box-shadow:
+    0 12px 28px rgba(0,0,0,.8),
+    inset 0 0 30px rgba(0,0,0,.5),
+    inset 3px 0 6px rgba(255,180,110,.08),
+    inset -3px 0 6px rgba(0,0,0,.5);
+}
+.shelf::before{
+  content:'';position:absolute;inset:4px;
+  background:
+    repeating-linear-gradient(180deg,
+      transparent 0 30%,
+      #1a0e06 30% 32%,
+      #2a1a0e 32% 33%,
+      transparent 33% 63%,
+      #1a0e06 63% 65%,
+      #2a1a0e 65% 66%,
+      transparent 66% 96%,
+      #1a0e06 96% 100%);
+}
+.shelf::after{
+  content:'';position:absolute;left:8%;right:8%;top:6%;bottom:6%;
+  background:
+    linear-gradient(90deg,
+      #6a2020 0 4.5%, #4a1818 4.5% 8%, transparent 8% 8.6%,
+      #3a4a20 8.6% 13%, #5a6a30 13% 17%, transparent 17% 17.6%,
+      #7a4028 17.6% 22%, #a05038 22% 25.5%, transparent 25.5% 26.2%,
+      #3a2858 26.2% 30%, #503878 30% 34%, transparent 34% 34.6%,
+      #7a5028 34.6% 39%, #9a6a38 39% 42%, transparent 42% 42.6%,
+      #2a3a58 42.6% 47%, #3a4a78 47% 50.5%, transparent 50.5% 51%,
+      #5a2818 51% 55%, #7a3828 55% 59%, transparent 59% 59.6%,
+      #284a2a 59.6% 64%, #386a3a 64% 67.5%, transparent 67.5% 68%,
+      #7a2818 68% 72%, #9a3828 72% 76%, transparent 76% 76.6%,
+      #4a3058 76.6% 81%, #6a4080 81% 85%, transparent 85% 85.6%,
+      #8a4828 85.6% 90%, #a85838 90% 94%, transparent 94%);
+  background-repeat:no-repeat;
+  background-size:100% 28%;
+  background-position:0 3%;
+  box-shadow:
+    0 26% 0 -6% transparent,
+    0 32% 0 0 rgba(0,0,0,0);
+}
+
+/* ---- 办公桌 ---- */
+.desk{
+  position:absolute;
+  background:
+    linear-gradient(180deg,#7a4a28 0%,#5a3420 60%,#3a2010 100%);
+  border:2px solid #1a0e06;
+  border-radius:2px;
+  box-shadow:
+    0 14px 26px rgba(0,0,0,.85),
+    inset 0 2px 0 rgba(255,180,110,.15);
+}
+/* 桌面厚度 */
+.desk::before{
+  content:'';position:absolute;left:-2px;right:-2px;bottom:-10px;height:8px;
+  background:linear-gradient(180deg,#3a2010,#1a0e06);
+  border-radius:0 0 2px 2px;
+}
+/* 桌腿 */
+.desk::after{
+  content:'';position:absolute;left:6%;right:6%;bottom:-32px;height:24px;
+  background:
+    linear-gradient(90deg,
+      #2a1808 0 4%, transparent 4% 96%, #2a1808 96% 100%);
+}
+
+/* ---- 木雕 ---- */
+.wood-carving{
+  position:absolute;
+  background:
+    radial-gradient(ellipse at 35% 30%, #c89058, #7a4820 55%, #3a2010 100%);
+  border-radius:38% 38% 22% 22% / 32% 32% 58% 58%;
+  box-shadow:
+    0 5px 10px rgba(0,0,0,.75),
+    inset -3px -5px 8px rgba(0,0,0,.4),
+    inset 2px 2px 6px rgba(255,220,160,.25);
+  pointer-events:none;
+}
+.wood-carving::before{
+  content:'';position:absolute;left:28%;top:18%;width:22%;height:32%;
+  background:radial-gradient(ellipse,rgba(255,220,170,.55),transparent 70%);
+  border-radius:50%;
+  filter:blur(1.5px);
+}
+
+/* ---- 纸沓（可点，独立档案）---- */
+.paper-stack{
+  position:absolute;
+  /* 纸面：极淡横纹 + 竖向纤维 + 中心亮边缘黄的旧纸色 */
+  background:
+    repeating-linear-gradient(0deg,
+      rgba(150,130,95,.055) 0 1px,
+      transparent 1px 4px),
+    repeating-linear-gradient(90deg,
+      rgba(150,130,95,.03) 0 1px,
+      transparent 1px 8px),
+    radial-gradient(ellipse 90% 85% at 50% 42%,
+      #fdf8ea 0%,
+      #f5ebd3 50%,
+      #e3d4b3 100%);
+  border:1px solid rgba(155,135,100,.55);
+  border-radius:1px;
+  /* 纸张厚度：右下多层 0.5px 阴影，堆出"一沓"的立体感 */
+  box-shadow:
+    0 .5px 0 rgba(190,170,130,.75),
+    0 1px 0 rgba(170,150,110,.6),
+    0 1.5px 0 rgba(150,130,90,.5),
+    0 2px 0 rgba(130,110,70,.4),
+    0 2.5px 0 rgba(110,90,60,.3),
+    0 3px 0 rgba(90,75,50,.22),
+    0 5px 10px rgba(0,0,0,.55),
+    0 1px 3px rgba(0,0,0,.4),
+    inset 0 1px 0 rgba(255,255,255,.85),
+    inset 0 -1px 1px rgba(160,140,100,.2);
+  transform:rotate(-1.6deg);
+  cursor:pointer;
+  transition:transform .3s cubic-bezier(.2,.8,.3,1),
+             box-shadow .3s, filter .3s;
+  z-index:5;
+}
+
+/* 上方歪着叠的第二张散纸 */
+.paper-stack::before{
+  content:'';
+  position:absolute;
+  left:-3%;
+  right:6%;
+  top:-7%;
+  bottom:10%;
+  background:
+    radial-gradient(ellipse 90% 85% at 50% 42%,
+      #fcf6e4 0%,
+      #f2e8ce 55%,
+      #ddceaa 100%);
+  border:1px solid rgba(155,135,100,.45);
+  border-radius:1px;
+  transform:rotate(4deg);
+  box-shadow:
+    0 1px 0 rgba(160,140,100,.45),
+    0 2px 4px rgba(0,0,0,.3),
+    inset 0 1px 0 rgba(255,255,255,.7);
+  z-index:-1;
+}
+
+/* 下方歪着叠的第三张散纸 */
+.paper-stack::after{
+  content:'';
+  position:absolute;
+  left:6%;
+  right:-3%;
+  top:10%;
+  bottom:-7%;
+  background:
+    radial-gradient(ellipse 90% 85% at 50% 42%,
+      #f7eed8 0%,
+      #ecdfc0 55%,
+      #d6c5a0 100%);
+  border:1px solid rgba(155,135,100,.45);
+  border-radius:1px;
+  transform:rotate(-3.2deg);
+  box-shadow:
+    0 1px 0 rgba(160,140,100,.4),
+    0 2px 4px rgba(0,0,0,.25),
+    inset 0 1px 0 rgba(255,255,255,.6);
+  z-index:-2;
+}
+
+.paper-stack:hover{
+  transform:rotate(-1.6deg) translateY(-5px) scale(1.04);
+  box-shadow:
+    0 .5px 0 rgba(190,170,130,.8),
+    0 1px 0 rgba(170,150,110,.65),
+    0 1.5px 0 rgba(150,130,90,.55),
+    0 2px 0 rgba(130,110,70,.45),
+    0 2.5px 0 rgba(110,90,60,.35),
+    0 3px 0 rgba(90,75,50,.25),
+    0 12px 22px rgba(0,0,0,.7),
+    0 0 32px rgba(250,240,210,.65),
+    inset 0 1px 0 rgba(255,255,255,.9);
+  filter:brightness(1.06);
+}
+
+/* ---- 书 ---- */
+.book{
+  position:absolute;
+  background:
+    linear-gradient(180deg,
+      #6a2020 0 12%,
+      #9a3030 12% 20%,
+      #7a2828 20% 80%,
+      #9a3030 80% 88%,
+      #6a2020 88% 100%);
+  border:1px solid #1a0808;
+  border-radius:1px 2px 2px 1px;
+  box-shadow:
+    0 4px 8px rgba(0,0,0,.7),
+    inset 2px 0 0 rgba(255,220,180,.15),
+    inset -3px 0 6px rgba(0,0,0,.5);
+  pointer-events:none;
+}
+/* 书脊上的金线 */
+.book::before{
+  content:'';position:absolute;left:2px;right:auto;top:0;bottom:0;width:3px;
+  background:
+    repeating-linear-gradient(180deg,
+      rgba(220,180,90,.9) 0 3px,
+      transparent 3px 6px);
+}
+/* 书页 */
+.book::after{
+  content:'';position:absolute;right:-1px;top:8%;bottom:8%;width:4px;
+  background:
+    repeating-linear-gradient(180deg,
+      #f0e6d0 0 1px,
+      #c8b890 1px 2px);
+}
+
+/* ---- 床 ---- */
+.bed{
+  position:absolute;
+  filter:drop-shadow(0 14px 20px rgba(0,0,0,.6));
+}
+
+/* 床头板 */
+.bed-head{
+  position:absolute;
+  left:2%; right:2%; top:0; height:56%;
+  background:
+    linear-gradient(180deg,
+      #8a5230 0%,
+      #6a3e22 28%,
+      #522f18 62%,
+      #3a2010 100%);
+  border:2px solid #22120a;
+  border-radius:50% 50% 4px 4px / 42% 42% 4px 4px;
+  box-shadow:
+    inset 0 8px 14px rgba(255,200,140,.2),
+    inset 0 -8px 16px rgba(0,0,0,.55);
+  z-index:1;
+}
+/* 床头板雕花 */
+.bed-head::before{
+  content:'';
+  position:absolute;
+  inset:20% 14%;
+  background:
+    radial-gradient(ellipse 70% 40% at 50% 42%,
+      transparent 0 42%,
+      rgba(200,150,90,.4) 43% 45%,
+      transparent 46% 58%,
+      rgba(200,150,90,.28) 59% 61%,
+      transparent 62%);
+  pointer-events:none;
+}
+
+/* 两侧立柱 */
+.bed-post{
+  position:absolute;
+  top:-4%; bottom:-4%;
+  width:5%;
+  background:
+    linear-gradient(90deg,
+      #4a2a14 0%,
+      #7a4a2a 28%,
+      #a06840 50%,
+      #7a4a2a 72%,
+      #4a2a14 100%);
+  border-radius:2px;
+  border:1px solid #22120a;
+  box-shadow:0 3px 8px rgba(0,0,0,.55);
+  z-index:3;
+}
+.bed-post-l{left:-3%}
+.bed-post-r{right:-3%}
+
+/* 黄铜球 */
+.bed-finial{
+  position:absolute;
+  top:-14%;
+  width:4%;
+  aspect-ratio:1;
+  background:radial-gradient(circle at 34% 28%,
+    #f8e8a4 0%,
+    #dcbc64 25%,
+    #a88830 58%,
+    #6a4a18 88%,
+    #3a2a10 100%);
+  border-radius:50%;
+  box-shadow:
+    0 2px 4px rgba(0,0,0,.65),
+    inset -1px -2px 3px rgba(0,0,0,.4);
+  z-index:6;
+}
+.bed-finial-l{right:-3%
+}
+.bed-finial-r{left:-3%}
+
+/* 床垫 */
+.bed-mattress{
+  position:absolute;
+  left:4%; right:4%; top:35%; height:32%;
+  background:
+    linear-gradient(180deg,
+      #f0e4c8 0%,
+      #e0d0ac 45%,
+      #c8b48c 100%);
+  border-radius:6px 6px 2px 2px;
+  border:1px solid #a89070;
+  box-shadow:
+    inset 0 4px 8px rgba(255,255,255,.55),
+    inset 0 -8px 14px rgba(120,90,50,.32);
+  z-index:2;
+}
+.bed-mattress::before{
+  content:'';
+  position:absolute;
+  inset:12% 5%;
+  background:
+    repeating-linear-gradient(90deg,
+      transparent 0 4%,
+      rgba(150,120,80,.22) 4% 4.6%,
+      transparent 4.6% 8%);
+  border-radius:3px;
+  pointer-events:none;
+}
+
+/* 枕头 */
+.bed-pillow{
+  position:absolute;
+  top:26%;
+  width:21%;
+  height:22%;
+  background:
+    radial-gradient(ellipse 90% 80% at 50% 42%,
+      #faf0c8 0%,
+      #e8d090 45%,
+      #c8a860 100%);
+  border-radius:22% 26% 24% 28% / 28% 24% 26% 22%;
+  border:1px solid #a88848;
+  box-shadow:
+    inset 0 -4px 7px rgba(140,100,40,.5),
+    inset 0 4px 6px rgba(255,250,220,.85),
+    0 3px 6px rgba(0,0,0,.4);
+  transform:rotate(-1.2deg);
+  z-index:4;
+}
+
+/* 枕头的凹陷 */
+.bed-pillow::before{
+  content:'';
+  position:absolute;
+  left:22%; right:22%; top:38%; bottom:32%;
+  background:radial-gradient(ellipse,rgba(150,120,80,.38),transparent 70%);
+  border-radius:50%;
+  pointer-events:none;
+}
+.bed-pillow-l{left:8%;
+top:20%
+}
+.bed-pillow-r{left:31%}
+
+/* 被子 */
+.bed-blanket{
+  position:absolute;
+  left:1%; right:1%; top:54%; height:38%;
+  background:
+    linear-gradient(180deg,
+      #8a4a30 0%,
+      #6a3824 30%,
+      #8a4a30 55%,
+      #522818 100%);
+  border-radius:5px 5px 3px 3px;
+  border:1px solid #3a1a0e;
+  box-shadow:
+    inset 0 6px 10px rgba(255,150,100,.22),
+    inset 0 -10px 18px rgba(0,0,0,.5),
+    0 6px 12px rgba(0,0,0,.5);
+  z-index:5;
+}
+.bed-blanket::before{
+  content:'';
+  position:absolute;
+  inset:15% 8%;
+  background:
+    repeating-linear-gradient(85deg,
+      transparent 0 8%,
+      rgba(0,0,0,.16) 8% 9.5%,
+      transparent 9.5% 18%),
+    repeating-linear-gradient(-88deg,
+      transparent 0 12%,
+      rgba(255,150,100,.12) 12% 13%,
+      transparent 13% 24%);
+  border-radius:3px;
+  pointer-events:none;
+}
+.bed-blanket::after{
+  content:'';
+  position:absolute;
+  left:2%; right:2%; top:0; height:18%;
+  background:linear-gradient(180deg,
+    rgba(255,200,150,.4),
+    transparent);
+  border-radius:5px 5px 0 0;
+  pointer-events:none;
+}
+
+/* 床腿 */
+.bed-leg{
+  position:absolute;
+  bottom:-8%;
+  width:4%;
+  height:16%;
+  background:
+    linear-gradient(90deg,
+      #3a2010 0%,
+      #6a3e22 42%,
+      #8a5230 60%,
+      #3a2010 100%);
+  border-radius:0 0 3px 3px;
+  box-shadow:0 3px 6px rgba(0,0,0,.6);
+  z-index:2;
+}
+.bed-leg-fl{left:2%;
+top:85%
+}
+.bed-leg-fr{right:2%;
+top:85%
+}
+
+/* ---- 沙发（暗红色） ---- */
+.sofa{
+  position:absolute;
+  filter:drop-shadow(0 10px 16px rgba(0,0,0,.7));
+}
+.sofa-back{
+  position:absolute;
+  left:0; right:0; top:0; height:60%;
+  background:
+    linear-gradient(180deg,
+      #8a3030 0%,
+      #6a2020 35%,
+      #4a1818 70%,
+      #3a1010 100%);
+  border:2px solid #2a0808;
+  border-radius:10px 10px 3px 3px;
+  box-shadow:
+    inset 0 6px 10px rgba(255,140,120,.2),
+    inset 0 -6px 12px rgba(0,0,0,.55);
+  z-index:1;
+}
+.sofa-seat{
+  position:absolute;
+  left:1%; right:1%; top:52%; height:38%;
+  background:
+    linear-gradient(180deg,
+      #7a2828 0%,
+      #5a1818 50%,
+      #3a1010 100%);
+  border:2px solid #2a0808;
+  border-radius:3px;
+  box-shadow:
+    inset 0 5px 8px rgba(255,110,90,.18),
+    inset 0 -5px 10px rgba(0,0,0,.5);
+  z-index:2;
+}
+.sofa-arm-l{
+  position:absolute;
+  left:-3%; top:25%; width:10%; height:70%;
+  background:
+    linear-gradient(90deg,
+      #4a1818 0%,
+      #7a2828 45%,
+      #5a1818 100%);
+  border:2px solid #2a0808;
+  border-radius:8px 3px 3px 8px;
+  box-shadow:
+    inset 3px 0 5px rgba(255,130,110,.15),
+    0 3px 8px rgba(0,0,0,.5);
+  z-index:3;
+}
+.sofa-arm-r{
+  position:absolute;
+  right:-3%; top:25%; width:10%; height:70%;
+  background:
+    linear-gradient(90deg,
+      #5a1818 0%,
+      #7a2828 55%,
+      #4a1818 100%);
+  border:2px solid #2a0808;
+  border-radius:3px 8px 8px 3px;
+  box-shadow:
+    inset -3px 0 5px rgba(255,130,110,.15),
+    0 3px 8px rgba(0,0,0,.5);
+  z-index:3;
+}
+
+/* ---- 茶桌 ---- */
+.coffee-table{
+  position:absolute;
+  background:
+    linear-gradient(180deg,
+      #6a4028 0%,
+      #4a2a14 45%,
+      #2a1810 100%);
+  border:2px solid #1a0e06;
+  border-radius:3px;
+  box-shadow:
+    0 12px 22px rgba(0,0,0,.8),
+    inset 0 2px 0 rgba(255,180,110,.2);
+  z-index:4;
+}
+.coffee-table::before{
+  content:'';
+  position:absolute;
+  left:-2px; right:-2px; bottom:-8px; height:6px;
+  background:linear-gradient(180deg, #2a1810, #1a0e06);
+  border-radius:0 0 2px 2px;
+}
+.coffee-table::after{
+  content:'';
+  position:absolute;
+  left:8%; right:8%; bottom:-26px; height:20px;
+  background:
+    linear-gradient(90deg,
+      #1a0e06 0 5%, transparent 5% 95%, #1a0e06 95% 100%);
+}
+
+/* ---- 花瓶 ---- */
+.vase{
+  position:absolute;
+  z-index:5;
+}
+.vase-body{
+  position:absolute;
+  left:0; right:0; bottom:0; height:75%;
+  background:
+    radial-gradient(ellipse 50% 40% at 40% 40%,
+      #5a6a7a 0%,
+      #3a4a5a 45%,
+      #1a2a3a 100%);
+  border-radius:45% 45% 40% 40% / 35% 35% 65% 65%;
+  border:1px solid #1a1a2a;
+  box-shadow:
+    inset -3px -2px 6px rgba(0,0,0,.6),
+    inset 3px 2px 5px rgba(150,180,210,.4),
+    0 3px 6px rgba(0,0,0,.5);
+}
+.vase-body::before{
+  content:'';
+  position:absolute;
+  left:15%; top:8%; width:22%; height:60%;
+  background:linear-gradient(160deg,
+    rgba(220,240,255,.55),
+    transparent 70%);
+  border-radius:50%;
+  filter:blur(1px);
+  pointer-events:none;
+}
+/* ---- 花瓶里的枝条 ---- */
+.vase-branch{
+  position:absolute;
+  left:50%;
+  top:-51%;
+  bottom:100%;
+  transform:translateX(-50%);
+  width:80%;
+  height:140%;
+  pointer-events:none;
+  overflow:visible;
+  z-index:0;
+}
+
+/* ---- 花朵（可点击，SVG 写实玫瑰） ---- */
+/* 尺寸固定为像素，不随 .scene / SVG / 视口缩放，
+   需要调整时只改 --flower-size 即可 */
+.scene .vase-flower{
+  --flower-size:45px;
+  position:absolute;
+  left:58%;
+  top:-73%;
+  transform:translateX(-50%);
+
+  width:var(--flower-size);
+  height:var(--flower-size);
+  min-width:var(--flower-size);
+  min-height:var(--flower-size);
+  flex:0 0 auto;
+
+  cursor:pointer;
+  z-index:3;
+  /* 外发光让花在暗背景里更立体 */
+  filter:
+    drop-shadow(0 0 4px rgba(190,60,60,.55))
+    drop-shadow(0 2px 5px rgba(0,0,0,.8));
+  transition:transform .3s cubic-bezier(.2,.8,.3,1),
+             filter .3s;
+}
+.vase-flower:hover{
+  transform:translateX(-50%) scale(1.22) rotate(-4deg);
+  filter:
+    drop-shadow(0 0 12px rgba(255,130,130,.95))
+    drop-shadow(0 0 26px rgba(200,50,50,.6))
+    drop-shadow(0 3px 7px rgba(0,0,0,.85));
+}
+
+/* ---- 工业风吊灯 ---- */
+.pendant-lamp{
+  position:absolute;
+  background:linear-gradient(90deg,
+    #050505 0%,
+    #2a2a2a 45%,
+    #3a3a3a 55%,
+    #050505 100%);
+  box-shadow:0 0 4px rgba(0,0,0,.8);
+  z-index:6;
+}
+.pendant-lamp::before{
+  content:'';
+  position:absolute;
+  left:50%;
+  bottom:-3%;
+  transform:translateX(-50%);
+  width:600%;
+  aspect-ratio:1.15;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 20%,
+      #4a3a2a 0%,
+      #2a1a10 45%,
+      #0a0604 100%);
+  border-radius:50% 50% 40% 40% / 30% 30% 70% 70%;
+  box-shadow:
+    inset 0 -4px 8px rgba(0,0,0,.75),
+    inset 0 4px 6px rgba(255,200,120,.4),
+    0 2px 6px rgba(0,0,0,.6);
+}
+.pendant-lamp::after{
+  content:'';
+  position:absolute;
+  left:50%;
+  top:100%;
+  transform:translateX(-50%);
+  width:1400%;
+  height:60%;
+  background:
+    radial-gradient(ellipse 50% 100% at 50% 0%,
+      rgba(255,200,110,.6) 0%,
+      rgba(255,170,70,.3) 30%,
+      rgba(255,140,40,.12) 55%,
+      transparent 80%);
+  border-radius:50%;
+  filter:blur(3px);
+  pointer-events:none;
+}
+
+/* ---- 横衣柜 ---- */
+.wardrobe{
+  position:absolute;
+  filter:drop-shadow(0 10px 16px rgba(0,0,0,.7));
+}
+
+/* 衣柜本体（背景 + 门 + 把手） */
+.wardrobe-body{
+  position:absolute;
+  inset:0;
+  background:linear-gradient(180deg,#6a3f22 0%,#4a2a14 100%);
+  border:3px solid #1a0e06;
+  border-radius:2px;
+  box-shadow:
+    inset 0 2px 0 rgba(255,180,110,.12),
+    inset 0 -6px 12px rgba(0,0,0,.5);
+  z-index:2;
+}
+.wardrobe-body::before{
+  content:'';position:absolute;left:2%;right:2%;top:8%;bottom:8%;
+  background:linear-gradient(90deg,
+    #5a3420 0 48%,
+    #1a0e06 48% 52%,
+    #5a3420 52% 100%);
+  box-shadow:
+    inset 2px 2px 6px rgba(0,0,0,.5),
+    inset -2px -2px 6px rgba(0,0,0,.5);
+  border-radius:1px;
+}
+.wardrobe-body::after{
+  content:'';position:absolute;left:50%;top:48%;
+  width:44px;height:12px;
+  transform:translateX(-50%);
+  background:
+    radial-gradient(circle at 10% 50%,#d8b860 0 3px,transparent 4px),
+    radial-gradient(circle at 90% 50%,#d8b860 0 3px,transparent 4px);
+}
+
+/* 两条圆柱腿（z-index 低，被衣柜本体遮住上半截） */
+.wardrobe-leg{
+  position:absolute;
+  bottom:-18%;
+  width:7%;
+  height:22%;
+  background:
+    linear-gradient(90deg,
+      #1a0e06 0%,
+      #3a2010 18%,
+      #6a3e22 38%,
+      #9a6234 52%,
+      #6a3e22 68%,
+      #3a2010 84%,
+      #1a0e06 100%);
+  border-radius:2px 2px 3px 3px;
+  box-shadow:
+    inset -2px 0 3px rgba(0,0,0,.55),
+    inset 2px 0 2px rgba(255,180,110,.22);
+  z-index:1;
+}
+.wardrobe-leg::before{
+  content:'';
+  position:absolute;
+  left:-15%; right:-15%; top:-8%;
+  height:14%;
+  background:
+    linear-gradient(90deg,
+      #1a0e06 0%,
+      #5a3420 40%,
+      #8a5230 55%,
+      #5a3420 72%,
+      #1a0e06 100%);
+  border-radius:50% / 60%;
+  box-shadow:0 1px 2px rgba(0,0,0,.5);
+}
+.wardrobe-leg::after{
+  content:'';
+  position:absolute;
+  left:-10%; right:-10%; bottom:-2%;
+  height:8%;
+  background:linear-gradient(180deg,#2a1808,#0a0604);
+  border-radius:0 0 3px 3px;
+}
+.wardrobe-leg-l{left:10%}
+.wardrobe-leg-r{right:10%}
+
+/* ---- 镜子 ---- */
+.mirror{
+  position:absolute;
+  background:
+    linear-gradient(135deg,
+      #2a3a44 0%,
+      #4a5a66 25%,
+      #354550 45%,
+      #2a3a44 60%,
+      #4a5a66 80%,
+      #1a2a34 100%);
+  border:7px solid;
+  border-image:linear-gradient(135deg,#8a6038,#c89860 30%,#6a4828 60%,#a87a48 100%) 1;
+  border-radius:4px;
+  box-shadow:
+    0 10px 24px rgba(0,0,0,.8),
+    inset 0 0 40px rgba(180,220,240,.2),
+    inset 0 0 8px rgba(255,255,255,.1);
+}
+/* 高光 */
+.mirror::before{
+  content:'';position:absolute;left:10%;top:8%;width:30%;height:75%;
+  background:
+    linear-gradient(160deg,
+      rgba(220,240,255,.55) 0%,
+      rgba(220,240,255,.15) 40%,
+      transparent 80%);
+  transform:skewX(-18deg);
+  border-radius:4px;
+  pointer-events:none;
+  filter:blur(.5px);
+}
+/* 第二道细高光 */
+.mirror::after{
+  content:'';position:absolute;left:52%;top:18%;width:8%;height:50%;
+  background:linear-gradient(160deg,rgba(220,240,255,.35),transparent 80%);
+  transform:skewX(-18deg);
+  border-radius:4px;
+  pointer-events:none;
+}
+
+/* ---- 浴缸 ---- */
+.bathtub{
+  position:absolute;
+  background:
+    linear-gradient(180deg,
+      #f0e8d8 0%,
+      #d8d0c0 30%,
+      #b8b0a0 70%,
+      #8a8478 100%);
+  border:2px solid #6a6055;
+  border-radius:0 0 50% 50% / 0 0 60% 60%;
+  box-shadow:
+    0 14px 28px rgba(0,0,0,.8),
+    inset 0 -16px 40px rgba(0,0,0,.4),
+    inset 0 4px 0 rgba(255,255,255,.5),
+    inset -6px 0 12px rgba(0,0,0,.15),
+    inset 6px 0 12px rgba(0,0,0,.15);
+}
+/* 缸口 + 内壁 */
+.bathtub::before{
+  content:'';position:absolute;
+  left:1%;right:1%;top:-4%;height:16%;
+  background:
+    linear-gradient(180deg,
+      #e8e0d0 0%,
+      #c8c0b0 60%,
+      #a8a098 100%);
+  border-radius:50% 50% 30% 30% / 100% 100% 40% 40%;
+  border:2px solid #6a6055;
+  box-shadow:
+    inset 0 -4px 8px rgba(0,0,0,.3),
+    inset 0 2px 0 rgba(255,255,255,.6);
+}
+/* 水龙头 */
+.bathtub::after{
+  content:'';position:absolute;
+  left:50%;top:-14%;
+  width:16px;height:20px;
+  transform:translateX(-50%);
+  background:
+    radial-gradient(circle at 50% 30%,#f0e8a8 0 3px,transparent 4px),
+    linear-gradient(180deg,#c8b070 0%,#8a6a30 100%);
+  border-radius:50% 50% 4px 4px;
+  box-shadow:
+    0 2px 4px rgba(0,0,0,.6),
+    inset -2px 0 3px rgba(0,0,0,.4),
+    inset 2px 0 2px rgba(255,240,180,.4);
+}
+
+/* ================= 新版纸档案 ================= */
+.paper-skin.fresh{
+  background-color:#f0e8d0;
+  background-image:
+    radial-gradient(ellipse 260px 180px at 28% 22%, rgba(255,255,250,.85), transparent 72%),
+    radial-gradient(ellipse 320px 220px at 72% 78%, rgba(255,255,255,.65), transparent 75%),
+    repeating-linear-gradient(0deg, rgba(160,140,110,.05) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(90deg, rgba(160,140,110,.03) 0 1px, transparent 1px 6px);
+  box-shadow:
+    inset 0 0 40px rgba(180,160,130,.18),
+    0 30px 80px rgba(0,0,0,.92),
+    0 0 0 1px rgba(120,100,70,.4);
+}
+.paper-skin.fresh::before{
+  opacity:.35;
+}
+
+/* ================= 镜子密码弹窗 ================= */
+.mirror-overlay{
+  position:fixed;inset:0;z-index:72;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(2,3,4,.88);
+  backdrop-filter:blur(5px);
+  opacity:0;pointer-events:none;
+  transition:opacity .4s ease;
+  padding:24px;
+}
+.mirror-overlay.show{opacity:1;pointer-events:auto}
+
+.mirror-card{
+  position:relative;
+  width:min(420px,90vw);
+  padding:48px 40px 38px;
+  background:
+    linear-gradient(160deg,#0f171b,#050809 55%,#0b1215);
+  border:1px solid rgba(140,180,200,.35);
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,.85),
+    0 30px 80px rgba(0,0,0,.95),
+    inset 0 0 90px rgba(80,130,160,.14);
+  transform:translateY(24px) scale(.96);
+  transition:transform .5s cubic-bezier(.2,.8,.3,1);
+  text-align:center;
+}
+.mirror-overlay.show .mirror-card{transform:translateY(0) scale(1)}
+.mirror-card::before{
+  content:'';position:absolute;inset:12px;pointer-events:none;
+  border:1px solid rgba(140,180,200,.14);
+}
+
+.mirror-title{
+  font-size:11px;letter-spacing:.55em;text-indent:.55em;
+  color:#7a96a8;margin-bottom:26px;
+  text-shadow:0 0 22px rgba(120,180,220,.45);
+}
+
+.mirror-input{
+  width:100%;
+  padding:13px 16px;
+  background:rgba(0,0,0,.6);
+  border:1px solid rgba(140,180,200,.3);
+  color:#d8e4ea;
+  font-family:inherit;
+  font-size:15px;
+  letter-spacing:.1em;
+  outline:none;
+  border-radius:1px;
+  text-align:center;
+  transition:border-color .3s,box-shadow .3s;
+}
+.mirror-input::placeholder{
+  color:rgba(140,170,190,.35);
+  font-style:italic;
+  letter-spacing:.18em;
+  font-size:13px;
+}
+.mirror-input:focus{
+  border-color:rgba(180,220,240,.65);
+  box-shadow:
+    0 0 22px rgba(120,180,220,.3),
+    inset 0 0 14px rgba(60,100,130,.25);
+}
+
+.mirror-msg{
+  margin-top:16px;
+  min-height:20px;
+  font-size:12px;
+  letter-spacing:.3em;
+  text-indent:.3em;
+  color:transparent;
+  transition:color .25s,text-shadow .25s;
+}
+.mirror-msg.err{
+  color:rgba(210,70,70,.92);
+  text-shadow:0 0 14px rgba(180,40,40,.6);
+}
+
+/* ================= 血雷闪烁（加强版） ================= */
+.blood-flash{
+  position:fixed;inset:-40px;z-index:9997;
+  pointer-events:none;
+  opacity:0;
+  background:
+    radial-gradient(circle at 24% 18%, rgba(255,250,240,.98) 0 4%, transparent 12%),
+    radial-gradient(circle at 76% 32%, rgba(255,60,60,.98) 0 6%, transparent 22%),
+    radial-gradient(circle at 42% 66%, rgba(210,10,20,.96) 0 8%, transparent 30%),
+    radial-gradient(circle at 58% 86%, rgba(160,0,10,.94) 0 10%, transparent 34%),
+    radial-gradient(circle at 50% 50%, rgba(120,0,8,.96) 0 20%, rgba(40,0,0,.98) 55%, rgba(0,0,0,1) 100%);
+  mix-blend-mode:screen;
+}
+.blood-flash.on{
+  animation:bloodFlash 2.6s cubic-bezier(.2,.6,.3,1) forwards;
+}
+@keyframes bloodFlash{
+  0%   {opacity:0}
+  2%   {opacity:1}
+  3.5% {opacity:0}
+  4%   {opacity:1}
+  6%   {opacity:.2}
+  7%   {opacity:1}
+  9%   {opacity:.05}
+  12%  {opacity:1}
+  15%  {opacity:.5}
+  18%  {opacity:.95}
+  22%  {opacity:.3}
+  28%  {opacity:.85}
+  34%  {opacity:.25}
+  42%  {opacity:.75}
+  52%  {opacity:.2}
+  64%  {opacity:.6}
+  78%  {opacity:.12}
+  90%  {opacity:.28}
+  100% {opacity:0}
+}
+
+/* 全屏血红色罩 + 血色从边缘向中心侵蚀 */
+.blood-flash::after{
+  content:'';
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse at 50% 50%, transparent 30%, rgba(120,0,8,.65) 60%, rgba(60,0,0,.92) 82%, rgba(20,0,0,1) 100%);
+  mix-blend-mode:multiply;
+  opacity:0;
+}
+.blood-flash.on::after{
+  animation:bloodVignette 2.6s ease-out forwards;
+}
+@keyframes bloodVignette{
+  0%{opacity:0}
+  4%{opacity:.95}
+  12%{opacity:.4}
+  20%{opacity:.95}
+  32%{opacity:.5}
+  48%{opacity:.85}
+  66%{opacity:.35}
+  82%{opacity:.6}
+  100%{opacity:0}
+}
+
+/* 全屏震抖 */
+.screen-shake{
+  animation:screenShake 1.4s cubic-bezier(.2,.7,.3,1) both;
+}
+@keyframes screenShake{
+  0%   {transform:translate(0,0) rotate(0)}
+  3%   {transform:translate(-14px, 8px) rotate(-.6deg)}
+  6%   {transform:translate(12px,-10px) rotate(.5deg)}
+  9%   {transform:translate(-18px, 6px) rotate(-.4deg)}
+  12%  {transform:translate(16px,-12px) rotate(.7deg)}
+  16%  {transform:translate(-10px,14px) rotate(-.5deg)}
+  20%  {transform:translate(20px,-6px) rotate(.4deg)}
+  26%  {transform:translate(-8px,10px) rotate(-.3deg)}
+  34%  {transform:translate(14px,-10px) rotate(.5deg)}
+  44%  {transform:translate(-12px,6px) rotate(-.4deg)}
+  56%  {transform:translate(8px,-6px) rotate(.2deg)}
+  70%  {transform:translate(-4px,3px) rotate(-.15deg)}
+  100% {transform:translate(0,0) rotate(0)}
+}
+
+/* 血溅层：多个随机血斑 */
+.blood-splat{
+  position:fixed;inset:0;z-index:9998;
+  pointer-events:none;
+  opacity:0;
+  overflow:hidden;
+}
+.blood-splat.on{opacity:1}
+.blood-splat span{
+  position:absolute;
+  display:block;
+  border-radius:50%;
+  background:
+    radial-gradient(circle at 40% 35%,
+      #b00a18 0%,
+      #8a0410 40%,
+      #5a000a 75%,
+      transparent 100%);
+  filter:blur(.4px) drop-shadow(0 0 12px rgba(150,0,10,.85));
+  transform:scale(0);
+  opacity:0;
+}
+.blood-splat.on span{
+  animation:splatPop .9s cubic-bezier(.2,.9,.3,1) forwards;
+}
+@keyframes splatPop{
+  0%  {transform:scale(.05);opacity:0}
+  10% {transform:scale(1.15);opacity:.95}
+  25% {transform:scale(1);opacity:.9}
+  70% {transform:scale(.98);opacity:.75}
+  100%{transform:scale(1);opacity:0}
+}
+
+/* 血滴从上往下流 */
+.blood-drip{
+  position:fixed;inset:0;z-index:9999;
+  pointer-events:none;
+  opacity:0;
+  overflow:hidden;
+}
+.blood-drip.on{opacity:1}
+.blood-drip span{
+  position:absolute;top:-40px;
+  width:4px;
+  background:linear-gradient(180deg,
+    rgba(180,10,20,.95),
+    rgba(120,0,10,.85) 60%,
+    rgba(60,0,0,.4) 100%);
+  border-radius:0 0 3px 3px;
+  box-shadow:0 0 8px rgba(160,0,10,.6);
+  animation:dripFall 2.2s linear forwards;
+}
+@keyframes dripFall{
+  0%  {transform:translateY(0);opacity:0}
+  8%  {opacity:1}
+  70% {opacity:.85}
+  100%{transform:translateY(105vh);opacity:0}
+}
+
+/* 屏幕撕裂线 */
+.glitch-line{
+  position:fixed;left:0;right:0;height:3px;
+  z-index:10000;
+  pointer-events:none;
+  background:linear-gradient(90deg,
+    transparent 0%,
+    rgba(255,255,255,.8) 15%,
+    rgba(255,40,40,.9) 50%,
+    rgba(255,255,255,.8) 85%,
+    transparent 100%);
+  mix-blend-mode:screen;
+  opacity:0;
+}
+.glitch-line.on{
+  animation:glitchLine 1.2s linear forwards;
+}
+@keyframes glitchLine{
+  0%  {opacity:0;transform:scaleY(1)}
+  6%  {opacity:.9;transform:scaleY(2)}
+  12% {opacity:.1}
+  20% {opacity:.85;transform:scaleY(1.4)}
+  30% {opacity:.05}
+  42% {opacity:.7;transform:scaleY(2.5)}
+  58% {opacity:.1}
+  74% {opacity:.5}
+  88% {opacity:.05}
+  100%{opacity:0}
+}
+
+/* ================= 语言切换器 ================= */
+.lang-switch{
+  position:fixed;right:20px;top:20px;z-index:65;
+  display:flex;
+  font-size:12px;letter-spacing:.15em;
+  user-select:none;
+}
+.lang-switch button{
+  padding:7px 12px;
+  background:rgba(10,10,8,.55);
+  color:#a99a72;
+  border:1px solid rgba(160,140,95,.35);
+  font-family:inherit;
+  cursor:pointer;
+  transition:background .25s,color .25s,border-color .25s;
+  backdrop-filter:blur(4px);
+}
+.lang-switch button + button{border-left:none}
+.lang-switch button:first-child{border-radius:2px 0 0 2px}
+.lang-switch button:last-child{border-radius:0 2px 2px 0}
+.lang-switch button.active{
+  background:rgba(60,50,32,.9);
+  color:#e2d4ab;
+  border-color:rgba(200,175,110,.55);
+}
+.lang-switch button:hover{color:#e2d4ab}
+
+/* ================= 新档案 · 头像占位 ================= */
+.portrait-inner .placeholder-hint{
+  font-size:10px;
+  letter-spacing:.28em;
+  text-indent:.28em;
+  color:rgba(180,150,90,.45);
+  font-style:italic;
+  line-height:1.8;
+  text-align:center;
+  padding:0 10px;
+}
+.portrait-inner img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+
+/* ================= 约稿条弹窗 ================= */
+.flower-overlay{
+  position:fixed;inset:0;z-index:73;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(2,3,4,.9);
+  backdrop-filter:blur(5px);
+  opacity:0;pointer-events:none;
+  transition:opacity .4s ease;
+  padding:24px;
+}
+.flower-overlay.show{opacity:1;pointer-events:auto}
+
+.flower-card{
+  position:relative;
+  width:min(560px,94vw);
+  max-height:88vh;
+  padding:32px 28px 96px;      /* 底部留空给右下角联系方式 */
+  display:flex;
+  flex-direction:column;
+  background:
+    linear-gradient(160deg,#1f1710,#0d0a07 55%,#181210);
+  border:1px solid rgba(170,140,80,.5);
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,.85),
+    0 30px 80px rgba(0,0,0,.95),
+    inset 0 0 60px rgba(80,50,20,.28);
+  transform:translateY(24px) scale(.96);
+  transition:transform .5s cubic-bezier(.2,.8,.3,1);
+}
+.flower-overlay.show .flower-card{transform:translateY(0) scale(1)}
+.flower-card::before{
+  content:'';position:absolute;inset:8px;pointer-events:none;
+  border:1px solid rgba(170,140,80,.16);
+}
+
+/* 页眉 */
+.commission-head{
+  position:relative;z-index:2;
+  flex:0 0 auto;
+  text-align:center;
+  padding-bottom:16px;
+  margin-bottom:18px;
+  border-bottom:1px solid rgba(170,140,80,.25);
+}
+.commission-title{
+  font-size:15px;
+  letter-spacing:.5em;
+  text-indent:.5em;
+  color:#d8c08a;
+  text-shadow:0 0 18px rgba(200,160,90,.45);
+}
+.commission-sub{
+  margin-top:6px;
+  font-size:9px;
+  letter-spacing:.4em;
+  text-indent:.4em;
+  color:rgba(180,150,100,.5);
+  font-style:italic;
+}
+
+/* 正文业务区（可滚动） */
+.commission-body{
+  position:relative;z-index:2;
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+  margin:0 -8px;
+  padding:0 8px;
+}
+.commission-body::-webkit-scrollbar{width:5px}
+.commission-body::-webkit-scrollbar-thumb{
+  background:rgba(170,140,80,.4);border-radius:3px;
+}
+.commission-body::-webkit-scrollbar-track{background:transparent}
+
+.commission-list{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.commission-item{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:12px;
+  align-items:center;
+  padding:12px 14px;
+  background:
+    linear-gradient(180deg, rgba(60,40,18,.35), rgba(30,20,10,.15));
+  border:1px solid rgba(170,140,80,.22);
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.4);
+}
+.commission-item-name{
+  font-size:14px;
+  letter-spacing:.14em;
+  color:#d8c08a;
+}
+.commission-item-note{
+  margin-top:4px;
+  font-size:11px;
+  letter-spacing:.06em;
+  color:rgba(180,150,100,.55);
+  font-style:italic;
+}
+.commission-item-meta{
+  text-align:right;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+.commission-item-price{
+  font-size:15px;
+  letter-spacing:.06em;
+  color:#e8d4a4;
+  text-shadow:0 0 10px rgba(220,180,100,.3);
+}
+.commission-item-duration{
+  font-size:10px;
+  letter-spacing:.14em;
+  color:rgba(190,160,110,.7);
+}
+
+/* 右下角联系方式 */
+.commission-contact{
+  position:absolute;
+  right:18px;
+  bottom:18px;
+  z-index:4;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:3px;
+  padding:10px 16px;
+  background:rgba(20,14,8,.88);
+  border:1px solid rgba(170,140,80,.5);
+  color:#d8c08a;
+  text-decoration:none;
+  font-family:inherit;
+  cursor:pointer;
+  transition:background .25s, border-color .25s, box-shadow .25s;
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,.5),
+    0 6px 16px rgba(0,0,0,.5);
+}
+.commission-contact:hover{
+  background:rgba(50,36,18,.95);
+  border-color:rgba(220,180,100,.85);
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,.5),
+    0 6px 20px rgba(0,0,0,.6),
+    0 0 24px rgba(220,170,90,.35);
+}
+.commission-contact-label{
+  font-size:9px;
+  letter-spacing:.36em;
+  text-indent:.36em;
+  color:rgba(180,150,100,.6);
+}
+.commission-contact-value{
+  font-size:13px;
+  letter-spacing:.08em;
+  color:#d8c08a;
+}
+.commission-contact:hover .commission-contact-value{color:#f0dca8}
+
+/* 关闭按钮（原样保留） */
+.flower-close{
+  position:absolute;
+  right:-14px;top:-14px;z-index:8;
+  width:34px;height:34px;line-height:1;
+  background:rgba(30,20,10,.92);
+  border:1px solid rgba(170,140,80,.55);
+  color:#c9b88a;font-size:15px;cursor:pointer;
+  font-family:inherit;transition:.3s;
+}
+.flower-close:hover{background:rgba(70,50,25,.92);color:#e8d9ac}
+
+/* 手机 */
+@media (max-width:640px){
+  .flower-card{padding:24px 20px 88px}
+  .commission-item{padding:10px 12px}
+  .commission-item-name{font-size:13px}
+  .commission-item-price{font-size:14px}
+  .commission-contact{padding:8px 12px;right:14px;bottom:14px}
+  .commission-contact-value{font-size:12px}
+}
+
+/* ================= 书房 · 书架与整排书 ================= */
+
+/* 关掉旧版那条"假书脊"渐变，改用真书元素 */
+.shelf::after{display:none}
+
+/* 书架内层：容纳三层书 */
+.shelf-books{
+  position:absolute;
+  inset:4px;
+  pointer-events:none;
+}
+
+/* 每层：贴底排列，高度对应书架 ::before 里的三个空层 */
+.shelf-row{
+  position:absolute;
+  left:0; right:0;
+  display:flex;
+  align-items:flex-end;
+  padding:0 5px;
+  box-sizing:border-box;
+  pointer-events:none;
+}
+.shelf-row[data-row="0"]{top:0;   height:30%}
+.shelf-row[data-row="1"]{top:33%; height:30%}
+.shelf-row[data-row="2"]{top:66%; height:30%}
+
+/* 单本书 —— 默认不可互动 */
+.shelf-book{
+  flex:0 0 auto;
+  position:relative;
+  border-radius:1px 2px 2px 1px;
+  box-shadow:
+    inset -2px 0 3px rgba(0,0,0,.55),
+    inset 1px 0 0 rgba(255,220,180,.10),
+    0 1px 2px rgba(0,0,0,.5);
+  pointer-events:none;
+}
+
+/* 书脊烫金线 */
+.shelf-book::before{
+  content:'';
+  position:absolute;
+  left:1px; top:8%; bottom:8%;
+  width:1px;
+  background:repeating-linear-gradient(180deg,
+    rgba(220,180,90,.7) 0 3px,
+    transparent 3px 7px);
+  opacity:.65;
+}
+
+/* 书口（纸页） */
+.shelf-book::after{
+  content:'';
+  position:absolute;
+  right:-1px; top:5%; bottom:5%;
+  width:2px;
+  background:repeating-linear-gradient(180deg,
+    #e8dcc0 0 1px,
+    #b0a080 1px 2px);
+  border-radius:0 1px 1px 0;
+}
+
+/* 作品集那一本 —— 外观与其他书一致，
+   常亮一点微光作为提示（桌面 / 手机都看得到） */
+.shelf-book.folio-book{
+  pointer-events:auto;
+  cursor:pointer;
+  transition:filter .25s, box-shadow .25s;
+  filter:brightness(1.12);
+  box-shadow:
+    inset -2px 0 3px rgba(0,0,0,.55),
+    inset 1px 0 0 rgba(255,220,180,.10),
+    0 1px 2px rgba(0,0,0,.5),
+    0 0 10px rgba(235,195,115,.7);   /* ← 常亮微光，浓淡改这里 */
+}
+
+/* 桌面悬停：再亮一档 */
+.shelf-book.folio-book:hover{
+  filter:brightness(1.28);
+  box-shadow:
+    inset -2px 0 3px rgba(0,0,0,.55),
+    inset 1px 0 0 rgba(255,220,180,.10),
+    0 1px 2px rgba(0,0,0,.5),
+    0 0 16px rgba(235,195,115,.95);
+}
+
+/* 触屏按下：最亮 */
+.shelf-book.folio-book:active{
+  filter:brightness(1.38);
+  box-shadow:
+    inset -2px 0 3px rgba(0,0,0,.55),
+    inset 1px 0 0 rgba(255,220,180,.10),
+    0 1px 2px rgba(0,0,0,.5),
+    0 0 20px rgba(245,205,125,1);
+}
+
+/* ================= 作品集弹窗 ================= */
+.folio-overlay{
+  position:fixed;inset:0;z-index:74;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(2,3,4,.9);
+  backdrop-filter:blur(5px);
+  opacity:0;pointer-events:none;
+  transition:opacity .4s ease;
+  padding:24px;
+}
+.folio-overlay.show{opacity:1;pointer-events:auto}
+
+.folio-card{
+  position:relative;
+  width:min(720px,94vw);
+  height:min(80vh,620px);
+  display:flex;
+  flex-direction:column;
+  padding:26px 26px 0;
+  background:
+    linear-gradient(160deg,#1b1410,#0b0806 55%,#141010);
+  border:1px solid rgba(170,140,80,.45);
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,.85),
+    0 30px 80px rgba(0,0,0,.95),
+    inset 0 0 70px rgba(80,50,20,.25);
+  transform:translateY(24px) scale(.96);
+  transition:transform .5s cubic-bezier(.2,.8,.3,1);
+}
+.folio-overlay.show .folio-card{transform:translateY(0) scale(1)}
+.folio-card::before{
+  content:'';position:absolute;inset:9px;pointer-events:none;
+  border:1px solid rgba(170,140,80,.15);
+}
+
+/* 页眉 */
+.folio-head{
+  position:relative;z-index:2;
+  flex:0 0 auto;
+  text-align:center;
+  padding-bottom:14px;
+  margin-bottom:14px;
+  border-bottom:1px solid rgba(170,140,80,.22);
+}
+.folio-title{
+  font-size:15px;letter-spacing:.5em;text-indent:.5em;
+  color:#d8c08a;
+  text-shadow:0 0 18px rgba(200,160,90,.45);
+}
+.folio-sub{
+  margin-top:6px;
+  font-size:9px;letter-spacing:.4em;text-indent:.4em;
+  color:rgba(180,150,100,.5);
+  font-style:italic;
+}
+
+/* 滚动视口 */
+.folio-viewport{
+  position:relative;
+  flex:1 1 auto;
+  min-height:0;
+  overflow:hidden;
+  touch-action:none;
+  cursor:grab;
+  -webkit-mask-image:linear-gradient(to bottom,
+    transparent 0,#000 7%,#000 93%,transparent 100%);
+  mask-image:linear-gradient(to bottom,
+    transparent 0,#000 7%,#000 93%,transparent 100%);
+}
+.folio-viewport:active{cursor:grabbing}
+
+/* 轨道：两份内容首尾相接，滚 -50% 正好无缝 */
+.folio-track{
+  display:flex;
+  flex-direction:column;
+  will-change:transform;
+}
+
+
+.folio-half{padding-bottom:16px}
+.folio-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:16px;
+}
+
+
+/* 单个作品 */
+.folio-item{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.folio-thumb{
+  position:relative;
+  width:100%;
+  aspect-ratio:1 / 1;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+  background:radial-gradient(ellipse at 50% 40%,#2a2118,#0a0705 78%);
+  border:1px solid rgba(170,140,80,.3);
+  box-shadow:
+    inset 0 0 26px rgba(0,0,0,.9),
+    0 4px 12px rgba(0,0,0,.6);
+}
+.folio-thumb img{
+  width:100%;height:100%;
+  object-fit:cover;display:block;
+}
+.folio-ph{
+  font-size:13px;
+  color:rgba(190,160,100,.32);
+  text-shadow:0 0 12px rgba(190,160,100,.25);
+}
+.folio-name{
+  font-size:12px;
+  letter-spacing:.14em;
+  text-indent:.14em;
+  color:#c9b88a;
+  text-align:center;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+/* 关闭按钮 */
+.folio-close{
+  position:absolute;
+  right:-14px;top:-14px;z-index:8;
+  width:34px;height:34px;line-height:1;
+  background:rgba(30,20,10,.92);
+  border:1px solid rgba(170,140,80,.55);
+  color:#c9b88a;font-size:15px;cursor:pointer;
+  font-family:inherit;transition:.3s;
+}
+.folio-close:hover{background:rgba(70,50,25,.92);color:#e8d9ac}
+
+/* 手机：改 2 列 */
+@media (max-width:640px){
+  .folio-card{height:min(78vh,540px);padding:20px 18px 0}
+  .folio-grid{grid-template-columns:repeat(2,1fr);gap:12px}
+  .folio-half{padding-bottom:12px}
+  .folio-name{font-size:11px}
+  .folio-title{font-size:13px;letter-spacing:.36em;text-indent:.36em}
+}
+
+/* 手机 */
+@media (max-width:640px){
+  .frame{padding:4px}
+  .frame .flower{width:24px;height:24px}
+  .frame .flower.tl{left:-9px;top:-9px}
+  .frame .flower.tr{right:-9px;top:-9px}
+  .frame .flower.bl{left:-9px;bottom:-9px}
+  .frame .flower.br{right:-9px;bottom:-9px}
+  .room-window{border-width:4px}
+  #backBtn{left:12px;top:12px;padding:7px 13px;font-size:11px}
+
+  /* OC 卡 */
+  .card{padding:30px 22px 32px}
+  .card .binding{left:16px}
+  .row dt{flex:0 0 52px;font-size:11px}
+  .row dd{font-size:13px}
+  .id-body{flex-direction:column;gap:20px;align-items:center}
+  .id-portrait{flex:0 0 auto}
+  .id-info{width:100%}
+  .portrait-frame{width:120px;height:145px}
+  .portrait-inner{font-size:34px}
+
+    .card{padding:34px 24px 36px}
+  .card .ink-frame{inset:12px}
+  .card .ink-frame-inner{inset:17px}
+  .card .corner-vine{width:54px;height:54px}
+  .id-body{flex-direction:column;gap:18px;align-items:center}
+  .id-portrait{flex:0 0 auto}
+  .id-info{width:100%}
+  .portrait-frame{width:118px;height:142px}
+  .portrait-inner{font-size:34px}
+
+    .frame.small .flower{width:18px;height:18px}
+  .frame.small .flower.tl{left:-7px;top:-7px}
+  .frame.small .flower.tr{right:-7px;top:-7px}
+  .frame.small .flower.bl{left:-7px;bottom:-7px}
+  .frame.small .flower.br{right:-7px;bottom:-7px}
+
+  /* 个人简介 */
+  .bio-card{padding:28px 24px 26px}
+  .bio-body{flex-direction:column;gap:16px;align-items:center}
+  .bio-portrait-col{flex:0 0 auto}
+  .bio-info-col{width:100%}
+  .bio-portrait-col .portrait-frame{width:110px;height:132px}
+  .bio-portrait-col .portrait-inner{font-size:28px}
+  .bio-stamp{width:64px;height:64px}
+  .bio-stamp-mid{font-size:10px}
+}
+</style>
+</head>
+<body>
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="flower-rose" viewBox="0 0 44 44">
+    <path d="M8,36 Q4,28 10,22 Q16,18 22,22" stroke="#3a4a2e" stroke-width="1.1" fill="none" stroke-linecap="round"/>
+    <path d="M22,22 Q28,18 36,20" stroke="#3a4a2e" stroke-width="1.1" fill="none" stroke-linecap="round"/>
+    <path d="M10,28 Q2,26 4,18 Q10,20 12,26 Z" fill="#4a5a3e"/>
+    <path d="M30,22 Q38,20 40,28 Q34,28 30,24 Z" fill="#3d4a32"/>
+    <path d="M16,32 Q12,38 8,40 Q14,40 18,34 Z" fill="#4a5a3e"/>
+    <circle cx="22" cy="18" r="9" fill="#5a2828"/>
+    <circle cx="22" cy="18" r="7" fill="#7a3535"/>
+    <circle cx="22" cy="18" r="5" fill="#9d4a4a"/>
+    <circle cx="22" cy="18" r="3" fill="#b86060"/>
+    <circle cx="22" cy="18" r="1.2" fill="#d48888"/>
+    <path d="M22,10 Q24,14 22,18" stroke="#3a1a1a" stroke-width="0.5" fill="none" opacity=".55"/>
+    <path d="M22,26 Q20,22 22,18" stroke="#3a1a1a" stroke-width="0.5" fill="none" opacity=".55"/>
+    <path d="M14,18 Q18,16 22,18" stroke="#3a1a1a" stroke-width="0.5" fill="none" opacity=".55"/>
+    <path d="M30,18 Q26,20 22,18" stroke="#3a1a1a" stroke-width="0.5" fill="none" opacity=".55"/>
+  </symbol>
+  <!-- 方框用：藤蔓荆棘玫瑰角花 -->
+<symbol id="vine-thorn" viewBox="0 0 60 60">
+  <g fill="none" stroke="#2a1a08" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M2,2 C10,14 6,26 14,34 C20,40 30,38 38,42"/>
+    <path d="M2,2 C14,8 22,10 30,6"/>
+    <path d="M8,12 C14,10 20,12 24,18"/>
+    <path d="M10,22 C16,24 22,28 26,34"/>
+  </g>
+  <g fill="#1a1008">
+    <path d="M6,8 L3,10 L6,11 Z"/>
+    <path d="M12,16 L9,18 L12,19 Z"/>
+    <path d="M10,26 L7,28 L10,29 Z"/>
+    <path d="M20,38 L17,40 L20,41 Z"/>
+    <path d="M18,10 L15,8 L16,12 Z"/>
+    <path d="M28,8 L26,5 L27,9 Z"/>
+    <path d="M30,22 L27,23 L29,25 Z"/>
+  </g>
+  <g>
+    <circle cx="42" cy="44" r="6" fill="#5a2828"/>
+    <circle cx="42" cy="44" r="4.5" fill="#7a3535"/>
+    <circle cx="42" cy="44" r="3" fill="#9d4a4a"/>
+    <circle cx="42" cy="44" r="1.5" fill="#b86060"/>
+  </g>
+  <g>
+    <circle cx="34" cy="8" r="4" fill="#5a2828"/>
+    <circle cx="34" cy="8" r="2.8" fill="#7a3535"/>
+    <circle cx="34" cy="8" r="1.4" fill="#a04a4a"/>
+  </g>
+</symbol>
+
+<!-- 椭圆用：上下弧形花环 -->
+<symbol id="oval-flourish" viewBox="0 0 80 30" preserveAspectRatio="none">
+  <path d="M2,26 C14,12 26,4 40,4 C54,4 66,12 78,26"
+    fill="none" stroke="#2a1a08" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M16,16 C14,10 18,6 22,8" fill="none" stroke="#2a1a08" stroke-width="1" stroke-linecap="round"/>
+  <path d="M64,16 C66,10 62,6 58,8" fill="none" stroke="#2a1a08" stroke-width="1" stroke-linecap="round"/>
+  <path d="M40,4 C38,-2 42,-4 44,-1" fill="none" stroke="#2a1a08" stroke-width="1" stroke-linecap="round"/>
+  <g fill="#1a1008">
+    <path d="M10,20 L7,20 L9,18 Z"/>
+    <path d="M28,10 L25,9 L27,7 Z"/>
+    <path d="M52,10 L55,9 L53,7 Z"/>
+    <path d="M70,20 L73,20 L71,18 Z"/>
+    <path d="M20,13 L17,13 L19,11 Z"/>
+    <path d="M60,13 L63,13 L61,11 Z"/>
+  </g>
+  <g transform="translate(40,-3)">
+    <circle r="6" fill="#5a2828"/>
+    <circle r="4.5" fill="#7a3535"/>
+    <circle r="3" fill="#9d4a4a"/>
+    <circle r="1.5" fill="#b86060"/>
+  </g>
+  <g transform="translate(12,18)">
+    <circle r="3.5" fill="#5a2828"/>
+    <circle r="2.2" fill="#7a3535"/>
+    <circle r="1" fill="#a04a4a"/>
+  </g>
+  <g transform="translate(68,18)">
+    <circle r="3.5" fill="#5a2828"/>
+    <circle r="2.2" fill="#7a3535"/>
+    <circle r="1" fill="#a04a4a"/>
+  </g>
+</symbol>
+  <!-- 手绘墨线抖动 filter -->
+<filter id="roughink">
+  <feTurbulence type="fractalNoise" baseFrequency="0.022" numOctaves="2" seed="7" result="noise"/>
+  <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.6" xChannelSelector="R" yChannelSelector="G"/>
+</filter>
+<filter id="roughink2">
+  <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="17" result="noise"/>
+  <feDisplacementMap in="SourceGraphic" in2="noise" scale="2" xChannelSelector="R" yChannelSelector="G"/>
+</filter>
+
+<!-- 手绘藤蔓玫瑰角花 -->
+<symbol id="vine-corner" viewBox="0 0 80 80">
+  <g fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4,52 C4,26 22,8 48,8"/>
+    <path d="M48,8 C41,15 37,23 37,30 C37,38 43,44 50,46"/>
+    <path d="M14,36 C18,30 24,28 30,32"/>
+    <path d="M14,36 C10,40 10,47 14,51"/>
+    <path d="M24,22 C28,18 33,19 36,24"/>
+    <path d="M8,44 C5,38 7,30 12,25"/>
+    <path d="M30,32 C34,34 38,33 40,30"/>
+  </g>
+  <g fill="#7a2828" opacity=".78">
+    <path d="M56,18 C50,14 48,6 55,3 C62,1 68,7 66,14 C64,20 60,22 56,18 Z"/>
+    <path d="M57,19 C54,17 53,13 56,11 C59,10 62,12 62,15 C62,18 60,20 57,19 Z" fill="#9a3838" opacity=".85"/>
+    <circle cx="58" cy="14" r="1.6" fill="#b86060"/>
+  </g>
+  <g fill="none" stroke="#2a1a08" stroke-width="1" stroke-linecap="round" opacity=".9">
+    <path d="M56,18 C53,16 52,12 54,10"/>
+    <path d="M50,10 C52,8 56,7 59,9"/>
+  </g>
+</symbol>
+</svg>
+
+<!-- ========== 场景 1：森林 ========== -->
+<section class="scene" id="scene-forest">
+  <div id="forest-svg" style="position:absolute;inset:0"></div>
+  <div class="hint" data-i18n="hintForest">找到進入公寓的關鍵物品</div>
+</section>
+
+<!-- ========== 场景 2：公寓外 ========== -->
+<section class="scene" id="scene-house">
+  <div id="house-svg" style="position:absolute;inset:0"></div>
+  <div class="hint" data-i18n="hintHouse">推 開 那 扇 門</div>
+</section>
+
+<!-- ========== 场景 3：房间 ========== -->
+<section class="scene" id="scene-room">
+  <div class="room">
+    <div class="room-wall"></div>
+    <div class="room-baseboard"></div>
+    <div class="room-floor"></div>
+
+        <!-- ============ 沙龙式画墙 ============ -->
+    <!-- Ⅰ 长方形 -->
+    <div class="frame" data-i="0" style="left:8%;top:10%;width:15%;height:26%">
+      <svg class="vine tl"><use href="#vine-thorn"/></svg>
+      <svg class="vine tr"><use href="#vine-thorn"/></svg>
+      <svg class="vine bl"><use href="#vine-thorn"/></svg>
+      <svg class="vine br"><use href="#vine-thorn"/></svg>
+      <div class="art">Ⅰ</div>
+    </div>
+
+    <!-- Ⅱ 方形 -->
+    <div class="frame square" data-i="1" style="left:29%;top:20%;width:14%;height:30%">
+      <svg class="vine tl"><use href="#vine-thorn"/></svg>
+      <svg class="vine tr"><use href="#vine-thorn"/></svg>
+      <svg class="vine bl"><use href="#vine-thorn"/></svg>
+      <svg class="vine br"><use href="#vine-thorn"/></svg>
+      <div class="art">Ⅱ</div>
+    </div>
+
+    <!-- Ⅲ 长方形 -->
+    <div class="frame" data-i="2" style="left:51%;top:8%;width:14%;height:22%">
+      <svg class="vine tl"><use href="#vine-thorn"/></svg>
+      <svg class="vine tr"><use href="#vine-thorn"/></svg>
+      <svg class="vine bl"><use href="#vine-thorn"/></svg>
+      <svg class="vine br"><use href="#vine-thorn"/></svg>
+      <div class="art">Ⅲ</div>
+    </div>
+
+    <!-- Ⅳ 长方形 -->
+    <div class="frame" data-i="3" style="left:73%;top:14%;width:15%;height:20%">
+      <svg class="flourish top"><use href="#oval-flourish"/></svg>
+      <svg class="flourish bottom"><use href="#oval-flourish"/></svg>
+      <div class="art">Ⅳ</div>
+    </div>
+
+    <!-- Ⅴ 方形 -->
+    <div class="frame square" data-i="4" style="left:10%;top:48%;width:12%">
+      <svg class="flourish top"><use href="#oval-flourish"/></svg>
+      <svg class="flourish bottom"><use href="#oval-flourish"/></svg>
+      <div class="art">Ⅴ</div>
+    </div>
+
+    <!-- Ⅵ 长方形 -->
+    <div class="frame" data-i="5" style="left:76%;top:46%;width:16%;height:24%">
+      <svg class="vine tl"><use href="#vine-thorn"/></svg>
+      <svg class="vine tr"><use href="#vine-thorn"/></svg>
+      <svg class="vine bl"><use href="#vine-thorn"/></svg>
+      <svg class="vine br"><use href="#vine-thorn"/></svg>
+      <div class="art">Ⅵ</div>
+    </div>
+
+    <div class="room-table"></div>
+  </div>
+  <div class="hint" data-i18n="hintHall" style="bottom:3.5%">大 廳</div>
+</section>
+
+<!-- ========== 场景 4：客厅 ========== -->
+<section class="scene" id="scene-room2">
+  <div class="room">
+    <div class="room-wall"></div>
+    <div class="room-baseboard"></div>
+    <div class="room-floor"></div>
+
+    <!-- 沙发（暗红） -->
+    <div class="sofa" style="left:55%;top:60%;width:26%;height:24%">
+      <span class="sofa-back"></span>
+      <span class="sofa-seat"></span>
+      <span class="sofa-arm-l"></span>
+      <span class="sofa-arm-r"></span>
+    </div>
+
+    <!-- 茶桌 -->
+    <div class="coffee-table" style="left:14%;top:70%;width:28%;height:9%"></div>
+
+    <!-- 花瓶（放在茶桌上，含枝条与可点击花朵） -->
+    <div class="vase" style="left:24%;top:58%;width:5%;height:12%">
+      <!-- 枝条（SVG，不可点） -->
+      <svg class="vase-branch" viewBox="0 0 60 100" preserveAspectRatio="none"
+           xmlns="http://www.w3.org/2000/svg">
+        <!-- 主枝 -->
+        <path d="M30,100 C28,82 26,62 28,44 C30,28 34,14 36,4"
+              stroke="#3a4a2e" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+        <!-- 侧枝 -->
+        <path d="M28,62 C34,58 40,52 46,46"
+              stroke="#3a4a2e" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+        <path d="M30,38 C24,34 20,28 16,22"
+              stroke="#2a3a20" stroke-width="1" fill="none" stroke-linecap="round"/>
+        <path d="M31,80 C26,76 22,72 18,66"
+              stroke="#2a3a20" stroke-width="0.9" fill="none" stroke-linecap="round"/>
+        <!-- 叶 -->
+        <ellipse cx="45" cy="50" rx="6" ry="3" fill="#3a4a2e"
+                 transform="rotate(-32 45 50)"/>
+        <ellipse cx="18" cy="25" rx="5" ry="2.5" fill="#2a3a20"
+                 transform="rotate(-46 18 25)"/>
+        <ellipse cx="19" cy="67" rx="5" ry="2.4" fill="#3a4a2e"
+                 transform="rotate(28 19 67)"/>
+        <ellipse cx="34" cy="76" rx="6" ry="2.8" fill="#4a5a3e"
+                 transform="rotate(36 34 76)"/>
+      </svg>
+      <!-- 花朵（可点击打开图片）：SVG 写实玫瑰 -->
+      <svg class="vase-flower" id="flowerClick" viewBox="0 0 40 40"
+           xmlns="http://www.w3.org/2000/svg" title="点击查看">
+        <defs>
+          <!-- 四层渐变：从中心深红到外圈亮红 -->
+          <radialGradient id="roseOut" cx="50%" cy="38%" r="72%">
+            <stop offset="0%"  stop-color="#e85050"/>
+            <stop offset="40%" stop-color="#b22424"/>
+            <stop offset="75%" stop-color="#7a1212"/>
+            <stop offset="100%" stop-color="#420606"/>
+          </radialGradient>
+          <radialGradient id="roseMid" cx="50%" cy="42%" r="70%">
+            <stop offset="0%"  stop-color="#c82828"/>
+            <stop offset="55%" stop-color="#8a1414"/>
+            <stop offset="100%" stop-color="#3a0505"/>
+          </radialGradient>
+          <radialGradient id="roseDark" cx="50%" cy="45%" r="68%">
+            <stop offset="0%"  stop-color="#9c1818"/>
+            <stop offset="65%" stop-color="#5a0a0a"/>
+            <stop offset="100%" stop-color="#240202"/>
+          </radialGradient>
+          <radialGradient id="roseDeep" cx="50%" cy="50%" r="60%">
+            <stop offset="0%"  stop-color="#6a0808"/>
+            <stop offset="70%" stop-color="#330303"/>
+            <stop offset="100%" stop-color="#100101"/>
+          </radialGradient>
+
+          <!-- 三种花瓣形状：大 / 中 / 小 -->
+          <path id="rose-petal-big"
+                d="M 0 -2
+                   C -6.5 -5 -9 -13 -4.5 -19
+                   C -2 -22 2 -22 4.5 -19
+                   C 9 -13 6.5 -5 0 -2 Z"/>
+          <path id="rose-petal-mid"
+                d="M 0 -1.6
+                   C -5 -4 -6.8 -10 -3.4 -14.5
+                   C -1.4 -16.5 1.4 -16.5 3.4 -14.5
+                   C 6.8 -10 5 -4 0 -1.6 Z"/>
+          <path id="rose-petal-sml"
+                d="M 0 -1.2
+                   C -3.4 -2.8 -4.6 -6.6 -2.4 -9.6
+                   C -1 -11 1 -11 2.4 -9.6
+                   C 4.6 -6.6 3.4 -2.8 0 -1.2 Z"/>
+        </defs>
+
+        <!-- 花心向上 5° 微倾 -->
+        <g transform="translate(20 20.5) rotate(-6)">
+
+          <!-- ① 最外层：8 片大花瓣 -->
+          <g fill="url(#roseOut)">
+            <use href="#rose-petal-big" transform="rotate(0)"/>
+            <use href="#rose-petal-big" transform="rotate(45)"/>
+            <use href="#rose-petal-big" transform="rotate(90)"/>
+            <use href="#rose-petal-big" transform="rotate(135)"/>
+            <use href="#rose-petal-big" transform="rotate(180)"/>
+            <use href="#rose-petal-big" transform="rotate(225)"/>
+            <use href="#rose-petal-big" transform="rotate(270)"/>
+            <use href="#rose-petal-big" transform="rotate(315)"/>
+          </g>
+
+          <!-- ② 次外层：7 片，稍错开 -->
+          <g fill="url(#roseMid)" transform="rotate(22.5)">
+            <use href="#rose-petal-mid" transform="rotate(0)"/>
+            <use href="#rose-petal-mid" transform="rotate(51.4)"/>
+            <use href="#rose-petal-mid" transform="rotate(102.9)"/>
+            <use href="#rose-petal-mid" transform="rotate(154.3)"/>
+            <use href="#rose-petal-mid" transform="rotate(205.7)"/>
+            <use href="#rose-petal-mid" transform="rotate(257.1)"/>
+            <use href="#rose-petal-mid" transform="rotate(308.6)"/>
+          </g>
+
+          <!-- ③ 中层：6 片更小，深红 -->
+          <g fill="url(#roseDark)" transform="rotate(-15)">
+            <use href="#rose-petal-sml" transform="rotate(0)"/>
+            <use href="#rose-petal-sml" transform="rotate(60)"/>
+            <use href="#rose-petal-sml" transform="rotate(120)"/>
+            <use href="#rose-petal-sml" transform="rotate(180)"/>
+            <use href="#rose-petal-sml" transform="rotate(240)"/>
+            <use href="#rose-petal-sml" transform="rotate(300)"/>
+          </g>
+
+          <!-- ④ 内层：5 片紧包 -->
+          <g fill="url(#roseDeep)" transform="rotate(10) scale(0.7)">
+            <use href="#rose-petal-sml" transform="rotate(0)"/>
+            <use href="#rose-petal-sml" transform="rotate(72)"/>
+            <use href="#rose-petal-sml" transform="rotate(144)"/>
+            <use href="#rose-petal-sml" transform="rotate(216)"/>
+            <use href="#rose-petal-sml" transform="rotate(288)"/>
+          </g>
+
+          <!-- ⑤ 花心螺旋 -->
+          <circle cx="0" cy="0" r="2.4" fill="#380303"/>
+          <path d="M 0 -2
+                   Q 2 -1 1.5 0.8
+                   Q 0.2 2.2 -1.2 1
+                   Q -2.2 -0.2 -1 -1.4
+                   Q 0.4 -2 1.2 -1"
+                fill="none" stroke="#0d0101" stroke-width="0.55"
+                stroke-linecap="round" opacity="0.85"/>
+          <!-- 花心高光 -->
+          <ellipse cx="-0.6" cy="-0.8" rx="0.9" ry="0.6"
+                   fill="#e8b8b8" opacity="0.45"/>
+        </g>
+      </svg>
+      <span class="vase-body"></span>
+    </div>
+
+    <!-- 工业风吊灯（橙光） -->
+    <div class="pendant-lamp" style="left:28%;top:0;width:0.6%;height:48%"></div>
+
+    <!-- 5 幅画框 -->
+    <div class="frame wide" data-i="6" style="left:6%;top:10%;width:16%;height:22%">
+      <svg class="vine tl"><use href="#vine-thorn"/></svg>
+      <svg class="vine tr"><use href="#vine-thorn"/></svg>
+      <svg class="vine bl"><use href="#vine-thorn"/></svg>
+      <svg class="vine br"><use href="#vine-thorn"/></svg>
+      <div class="art">Ⅰ</div>
+    </div>
+    <div class="frame square" data-i="7" style="left:26%;top:16%;width:13%;height:24%">
+      <svg class="vine tl"><use href="#vine-thorn"/></svg>
+      <svg class="vine tr"><use href="#vine-thorn"/></svg>
+      <svg class="vine bl"><use href="#vine-thorn"/></svg>
+      <svg class="vine br"><use href="#vine-thorn"/></svg>
+      <div class="art">Ⅱ</div>
+    </div>
+    <div class="frame oval" data-i="8" style="left:44%;top:8%;width:14%;height:20%">
+      <svg class="flourish top"><use href="#oval-flourish"/></svg>
+      <svg class="flourish bottom"><use href="#oval-flourish"/></svg>
+      <div class="art">Ⅲ</div>
+    </div>
+    <div class="frame tall" data-i="9" style="left:64%;top:12%;width:11%;height:26%">
+      <svg class="vine tl"><use href="#vine-thorn"/></svg>
+      <svg class="vine tr"><use href="#vine-thorn"/></svg>
+      <svg class="vine bl"><use href="#vine-thorn"/></svg>
+      <svg class="vine br"><use href="#vine-thorn"/></svg>
+      <div class="art">Ⅳ</div>
+    </div>
+    <div class="frame wide" data-i="10" style="left:78%;top:14%;width:15%;height:22%">
+      <svg class="vine tl"><use href="#vine-thorn"/></svg>
+      <svg class="vine tr"><use href="#vine-thorn"/></svg>
+      <svg class="vine bl"><use href="#vine-thorn"/></svg>
+      <svg class="vine br"><use href="#vine-thorn"/></svg>
+      <div class="art">Ⅴ</div>
+    </div>
+  </div>
+  <div class="hint" data-i18n="hintLiving" style="bottom:3.5%">客 廳</div>
+</section>
+
+<!-- ========== 场景 5：卧室 ========== -->
+<section class="scene" id="scene-room3">
+  <div class="room">
+    <div class="room-wall"></div>
+    <div class="room-baseboard"></div>
+    <div class="room-floor"></div>
+
+        <!-- 床 -->
+    <div class="bed" style="left:4%;top:54%;width:42%;height:30%">
+      <span class="bed-head"></span>
+      <span class="bed-post bed-post-l"></span>
+      <span class="bed-post bed-post-r"></span>
+      <span class="bed-finial bed-finial-l"></span>
+      <span class="bed-finial bed-finial-r"></span>
+      <span class="bed-mattress"></span>
+      <span class="bed-pillow bed-pillow-l"></span>
+      <span class="bed-blanket"></span>
+      <span class="bed-leg bed-leg-fl"></span>
+      <span class="bed-leg bed-leg-fr"></span>
+    </div>
+
+    <!-- 横衣柜 -->
+    <div class="wardrobe" style="left:56%;top:60%;width:30%;height:20%">
+      <span class="wardrobe-leg wardrobe-leg-l"></span>
+      <span class="wardrobe-leg wardrobe-leg-r"></span>
+       <span class="wardrobe-body"></span>
+    </div>
+
+    <!-- 3 幅画框 -->
+    <div class="frame tall" data-i="11" style="left:14%;top:10%;width:12%;height:24%">
+      <svg class="vine tl"><use href="#vine-thorn"/></svg>
+      <svg class="vine tr"><use href="#vine-thorn"/></svg>
+      <svg class="vine bl"><use href="#vine-thorn"/></svg>
+      <svg class="vine br"><use href="#vine-thorn"/></svg>
+      <div class="art">Ⅰ</div>
+    </div>
+    <div class="frame oval" data-i="12" style="left:64%;top:10%;width:14%;height:22%">
+      <svg class="flourish top"><use href="#oval-flourish"/></svg>
+      <svg class="flourish bottom"><use href="#oval-flourish"/></svg>
+      <div class="art">Ⅱ</div>
+    </div>
+    <div class="frame wide" data-i="13" style="left:38%;top:12%;width:15%;height:22%">
+      <svg class="vine tl"><use href="#vine-thorn"/></svg>
+      <svg class="vine tr"><use href="#vine-thorn"/></svg>
+      <svg class="vine bl"><use href="#vine-thorn"/></svg>
+      <svg class="vine br"><use href="#vine-thorn"/></svg>
+      <div class="art">Ⅲ</div>
+    </div>
+  </div>
+  <div class="hint" data-i18n="hintBedroom" style="bottom:3.5%">臥 室</div>
+</section>
+
+<!-- ========== 场景 6：卫生间 ========== -->
+<section class="scene" id="scene-room4">
+  <div class="room">
+    <div class="room-wall"></div>
+    <div class="room-baseboard"></div>
+    <div class="room-floor"></div>
+
+        <!-- 镜子 -->
+        <div class="mirror" id="mirror" style="left:12%;top:12%;width:22%;height:28%"></div>
+
+    <!-- 浴缸 -->
+    <div class="bathtub" style="left:42%;top:54%;width:48%;height:26%"></div>
+
+    <!-- 2 幅画框 -->
+    <div class="frame wide" data-i="14" style="left:52%;top:14%;width:16%;height:20%">
+      <svg class="vine tl"><use href="#vine-thorn"/></svg>
+      <svg class="vine tr"><use href="#vine-thorn"/></svg>
+      <svg class="vine bl"><use href="#vine-thorn"/></svg>
+      <svg class="vine br"><use href="#vine-thorn"/></svg>
+      <div class="art">Ⅰ</div>
+    </div>
+    <div class="frame square" data-i="15" style="left:74%;top:20%;width:13%;height:24%">
+      <svg class="vine tl"><use href="#vine-thorn"/></svg>
+      <svg class="vine tr"><use href="#vine-thorn"/></svg>
+      <svg class="vine bl"><use href="#vine-thorn"/></svg>
+      <svg class="vine br"><use href="#vine-thorn"/></svg>
+      <div class="art">Ⅱ</div>
+    </div>
+  </div>
+  <div class="hint" data-i18n="hintBathroom" style="bottom:3.5%">衛 生 間</div>
+</section>
+
+<!-- ========== 场景 7：书房 ========== -->
+<section class="scene" id="scene-room5">
+  <div class="room">
+    <div class="room-wall"></div>
+    <div class="room-baseboard"></div>
+    <div class="room-floor"></div>
+
+<!-- 书架（三层，由 JS 填满书；其中一本是作品集） -->
+<div class="shelf" style="left:4%;top:10%;width:22%;height:46%">
+  <div class="shelf-books">
+    <div class="shelf-row" data-row="0"></div>
+    <div class="shelf-row" data-row="1"></div>
+    <div class="shelf-row" data-row="2"></div>
+  </div>
+</div>
+
+    <!-- 办公桌 -->
+    <div class="desk" style="left:40%;top:66%;width:52%;height:6%"></div>
+
+    <!-- 桌上三件：木雕、纸沓、书（并排）-->
+    <div class="wood-carving" style="left:44%;top:59%;width:5.5%;height:7%"></div>
+    <div class="paper-stack" id="freshPaper" style="left:52%;top:61%;width:9%;height:5%"></div>
+    <div class="book" style="left:63.5%;top:61%;width:6%;height:5%"></div>
+
+    <!-- 3 幅画框 -->
+    <div class="frame tall" data-i="16" style="left:32%;top:10%;width:11%;height:24%">
+      <svg class="vine tl"><use href="#vine-thorn"/></svg>
+      <svg class="vine tr"><use href="#vine-thorn"/></svg>
+      <svg class="vine bl"><use href="#vine-thorn"/></svg>
+      <svg class="vine br"><use href="#vine-thorn"/></svg>
+      <div class="art">Ⅰ</div>
+    </div>
+    <div class="frame oval" data-i="17" style="left:76%;top:12%;width:13%;height:22%">
+      <svg class="flourish top"><use href="#oval-flourish"/></svg>
+      <svg class="flourish bottom"><use href="#oval-flourish"/></svg>
+      <div class="art">Ⅱ</div>
+    </div>
+        <div class="frame square" data-i="18" style="left:54%;top:14%;width:13%;height:30%">
+      <svg class="vine tl"><use href="#vine-thorn"/></svg>
+      <svg class="vine tr"><use href="#vine-thorn"/></svg>
+      <svg class="vine bl"><use href="#vine-thorn"/></svg>
+      <svg class="vine br"><use href="#vine-thorn"/></svg>
+      <div class="art">Ⅲ</div>
+    </div>
+  </div>
+  <div class="hint" data-i18n="hintStudy" style="bottom:3.5%">書 房</div>
+</section>
+
+
+<!-- ========== 返回 ========== -->
+<button id="backBtn">← 返 回</button>
+
+<!-- ========== 语言切换 ========== -->
+<div class="lang-switch" id="langSwitch">
+  <button data-lang="zh-CN">简中</button>
+  <button data-lang="zh-TW">繁中</button>
+  <button data-lang="en">EN</button>
+</div>
+
+<!-- ========== 房间切换箭头 ========== -->
+<button id="roomPrevBtn" class="room-nav left" aria-label="上一间">‹</button>
+<button id="roomNextBtn" class="room-nav right" aria-label="下一间">›</button>
+
+<!-- ========== 画框弹层 ========== -->
+<div class="overlay" id="overlay">
+  <div class="card">
+    <div class="ink-frame"></div>
+    <div class="ink-frame-inner"></div>
+    <svg class="corner-vine tl"><use href="#vine-corner"/></svg>
+    <svg class="corner-vine tr"><use href="#vine-corner"/></svg>
+    <svg class="corner-vine bl"><use href="#vine-corner"/></svg>
+    <svg class="corner-vine br"><use href="#vine-corner"/></svg>
+
+    <button class="close" id="closeCard">✕</button>
+    <div class="card-title" id="cardTitle">IDENTIFICATION · Ⅰ</div>
+    <div class="id-body">
+      <div class="id-portrait">
+        <div class="portrait-frame">
+          <div class="portrait-inner" id="cardPortrait">Ⅰ</div>
+        </div>
+        <div class="portrait-label">PHOTO</div>
+      </div>
+      <div class="id-info">
+        <h2 class="card-name" id="cardName">【角色姓名】</h2>
+        <div class="card-sub" id="cardSub">—</div>
+        <div class="card-line"></div>
+        <dl id="cardBody"></dl>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 个人简介 ========== -->
+<div class="overlay" id="bioOverlay">
+  <div class="bio-card paper-skin">
+    <div class="paper-shade"></div>
+
+    <div class="bio-header">
+      <div class="bio-header-line"></div>
+<div class="bio-header-title" data-i18n="bioTopTitle">艾爾森公寓 · 住戶登記證明</div>
+<div class="bio-header-sub" data-i18n="bioSubTitle">LAKEVIEW APARTMENT · RESIDENT IDENTIFICATION</div>
+
+<div class="bio-row"><span class="bio-key" data-i18n="bioName">姓　名</span><span class="bio-val">【你 的 名 字】</span></div>
+<div class="bio-row"><span class="bio-key" data-i18n="bioFileNo">檔案編號</span><span class="bio-val">No. ██ · ███ · ████</span></div>
+<div class="bio-row"><span class="bio-key" data-i18n="bioDate">登記日期</span><span class="bio-val">19██ 年 ██ 月 ██ 日</span></div>
+<div class="bio-row"><span class="bio-key" data-i18n="bioRole">身　份</span><span class="bio-val">【身份 / 職業】</span></div>
+<div class="bio-row"><span class="bio-key" data-i18n="bioAddress">住　址</span><span class="bio-val" data-i18n="bioAddressVal">艾爾森公寓 · 頂層 · 閣樓</span></div>
+
+<div class="bio-section-label" data-i18n="bioSectionProfile">簡 介 · PROFILE</div>
+<p class="bio-text" data-i18n="bioTextProfile">【在這裡寫一句話介紹你自己。比如：一個喜歡在深夜寫故事的人，偶爾畫畫，偶爾養一些不會開花的植物。】</p>
+
+<div class="bio-section-label" data-i18n="bioSectionHobbies">愛 好 · 近 況 · 聯 繫</div>
+<ul class="bio-list" data-i18n="bioListHobbies"><li>【愛好：繪畫、寫作、遊戲……】</li><li>【正在做的事】</li><li>【郵箱 / 社交賬號 / 聯繫方式】</li></ul>
+    </div>
+
+    <div class="bio-footer">
+      <div class="bio-stamp">
+        <div class="bio-stamp-inner">
+          <div class="bio-stamp-top">LAKEVIEW</div>
+          <div class="bio-stamp-mid">✦</div>
+          <div class="bio-stamp-bot">登记处</div>
+        </div>
+      </div>
+      <div class="bio-sign">
+        <div class="bio-sign-line"></div>
+        <div class="bio-sign-text">签 字 / SIGNATURE</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 新版纸张档案 ========== -->
+<div class="overlay" id="freshOverlay">
+  <div class="bio-card paper-skin fresh">
+    <div class="paper-shade"></div>
+
+    <div class="bio-header">
+      <div class="bio-header-line"></div>
+      <div class="bio-header-title" data-i18n="freshTitle">新 檔 案 · 未 歸 檔</div>
+      <div class="bio-header-sub" data-i18n="freshSub">UNFILED · RECENTLY WRITTEN</div>
+      <div class="bio-header-line"></div>
+    </div>
+
+    <!-- 正文（不变） -->
+    <div class="bio-section">
+      <div class="bio-section-label" data-i18n="freshNoteLabel">正 文 · NOTE</div>
+      <p class="bio-text" data-i18n="freshNoteText" style="font-style:normal;color:#3a2e1a">【這裡的紙張更新一些，墨跡也還沒乾透。你可以在這裡寫一段較新的 OC 設定、最近發生的故事、或者尚未歸入正式檔案的草稿。】</p>
+    </div>
+
+    <!-- 摘录：改为 OC 信息 + 头像 -->
+    <div class="bio-section">
+      <div class="bio-section-label" data-i18n="freshExcerptLabel">摘 錄 · EXCERPT</div>
+      <div class="bio-body" style="margin-bottom:0;padding-bottom:0;border-bottom:none">
+        <div class="bio-portrait-col">
+          <div class="portrait-frame">
+            <div class="portrait-inner" id="freshAvatar">
+              <span class="placeholder-hint" data-i18n="freshAvatarHint">此处放置图片</span>
+            </div>
+          </div>
+          <div class="portrait-label">PHOTO</div>
+        </div>
+        <div class="bio-info-col" id="freshInfo">
+          <!-- JS 会填充字段行 -->
+        </div>
+      </div>
+    </div>
+
+    <div class="bio-footer">
+      <div class="bio-stamp" style="border-color:rgba(90,110,150,.7);color:rgba(90,110,150,.85)">
+        <div class="bio-stamp-inner">
+          <div class="bio-stamp-top" data-i18n="freshStampTop">FRESH</div>
+          <div class="bio-stamp-mid">✎</div>
+          <div class="bio-stamp-bot" data-i18n="freshStampBot">未歸檔</div>
+        </div>
+      </div>
+      <div class="bio-sign">
+        <div class="bio-sign-line"></div>
+        <div class="bio-sign-text" data-i18n="freshSign">落 筆 / LAST WRITTEN</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 约稿条弹窗 ========== -->
+<div class="flower-overlay" id="flowerOverlay">
+  <div class="flower-card">
+    <button class="flower-close" id="flowerClose">✕</button>
+
+    <div class="commission-head">
+      <div class="commission-title" data-i18n="commissionTitle">约 稿 条</div>
+      <div class="commission-sub" data-i18n="commissionSub">COMMISSION SHEET</div>
+    </div>
+
+    <div class="commission-body">
+      <div class="commission-list" id="commissionList"></div>
+    </div>
+
+    <a class="commission-contact" id="commissionContact"
+       href="#" target="_blank" rel="noopener">
+      <span class="commission-contact-label"
+            data-i18n="commissionContactLabel">联 系 方 式</span>
+      <span class="commission-contact-value" id="commissionContactValue">@your_name</span>
+    </a>
+  </div>
+</div>
+
+<!-- ========== 作品集弹窗 ========== -->
+<div class="folio-overlay" id="folioOverlay">
+  <div class="folio-card">
+    <button class="folio-close" id="folioClose">✕</button>
+    <div class="folio-head">
+      <div class="folio-title" data-i18n="folioTitle">作 品 集</div>
+      <div class="folio-sub" data-i18n="folioSub">PORTFOLIO · SELECTED WORKS</div>
+    </div>
+    <div class="folio-viewport">
+      <div class="folio-track" id="folioTrack"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 镜子密码弹窗 ========== -->
+<div class="mirror-overlay" id="mirrorOverlay">
+  <div class="mirror-card">
+<div class="mirror-title" data-i18n="mirrorTitle">— 鏡 中 之 聲 —</div>
+<input type="text" class="mirror-input" id="mirrorInput"
+       data-i18n-ph="mirrorPh"
+       placeholder="請輸入密碼查看檔案" autocomplete="off" spellcheck="false">
+    <div class="mirror-msg" id="mirrorMsg"></div>
+  </div>
+</div>
+
+<!-- ========== 血雷闪烁（加强版） ========== -->
+<div class="blood-flash" id="bloodFlash"></div>
+<div class="blood-splat" id="bloodSplat"></div>
+<div class="blood-drip" id="bloodDrip"></div>
+<div class="glitch-line" id="glitch1" style="top:18%"></div>
+<div class="glitch-line" id="glitch2" style="top:46%"></div>
+<div class="glitch-line" id="glitch3" style="top:73%"></div>
+
+
+<div class="vignette"></div>
+<div class="grain"></div>
+
+<script>
+/* =========================================================
+   0. 工具
+   ========================================================= */
+function mulberry32(a){
+  return function(){
+    a|=0; a=a+0x6D2B79F5|0;
+    var t=Math.imul(a^a>>>15,1|a);
+    t=t+Math.imul(t^t>>>7,61|t)^t;
+    return((t^t>>>14)>>>0)/4294967296;
+  };
+}
+
+/* 松树剪影 */
+function pine(cx,baseY,h,w,fill,op){
+  let out='';
+  for(let i=0;i<3;i++){
+    const by=baseY-h*0.15*i;
+    const ty=baseY-h*(0.5+0.23*i);
+    const hw=w*(1-0.22*i);
+    out+=`<polygon points="${cx.toFixed(1)},${ty.toFixed(1)} ${(cx-hw).toFixed(1)},${by.toFixed(1)} ${(cx+hw).toFixed(1)},${by.toFixed(1)}" fill="${fill}" opacity="${op}"/>`;
+  }
+  out+=`<rect x="${(cx-w*0.07).toFixed(1)}" y="${(baseY-h*0.08).toFixed(1)}" width="${(w*0.14).toFixed(1)}" height="${(h*0.16).toFixed(1)}" fill="${fill}" opacity="${op}"/>`;
+  return out;
+}
+
+/* 简易点击音效 */
+let actx=null;
+function tick(freq,dur,vol){
+  try{
+    if(!actx) actx=new (window.AudioContext||window.webkitAudioContext)();
+    const t=actx.currentTime;
+    const o=actx.createOscillator(), g=actx.createGain();
+    o.type='triangle';
+    o.frequency.setValueAtTime(freq||190,t);
+    o.frequency.exponentialRampToValueAtTime((freq||190)*0.42,t+(dur||0.09));
+    g.gain.setValueAtTime(vol||0.05,t);
+    g.gain.exponentialRampToValueAtTime(0.0008,t+(dur||0.09)+0.05);
+    o.connect(g); g.connect(actx.destination);
+    o.start(t); o.stop(t+(dur||0.09)+0.08);
+  }catch(e){}
+}
+
+/* =========================================================
+   1. 森林场景
+   ========================================================= */
+(function buildForest(){
+  const rnd=mulberry32(20240607);
+  let s=`
+  <defs>
+    <linearGradient id="f-sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#040a0c"/>
+      <stop offset="45%" stop-color="#0d1b1f"/>
+      <stop offset="100%" stop-color="#21302c"/>
+    </linearGradient>
+    <radialGradient id="f-moon">
+      <stop offset="0%" stop-color="#f6efd2" stop-opacity=".5"/>
+      <stop offset="40%" stop-color="#e2d9b4" stop-opacity=".11"/>
+      <stop offset="100%" stop-color="#e2d9b4" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="f-water" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#16262a"/>
+      <stop offset="35%" stop-color="#0a1517"/>
+      <stop offset="100%" stop-color="#03080a"/>
+    </linearGradient>
+    <linearGradient id="f-fog" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#93aaa2" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#93aaa2" stop-opacity=".2"/>
+      <stop offset="100%" stop-color="#93aaa2" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="f-blur"><feGaussianBlur stdDeviation="16"/></filter>
+    <filter id="f-blur6"><feGaussianBlur stdDeviation="6"/></filter>
+  </defs>`;
+
+  s+=`<rect width="1000" height="600" fill="url(#f-sky)"/>`;
+
+  // 星空
+  for(let i=0;i<95;i++){
+    const x=(rnd()*1000).toFixed(1);
+    const y=(rnd()*370).toFixed(1);
+    const r=(rnd()*1.1+0.25).toFixed(2);
+    const o=(rnd()*0.5+0.08).toFixed(2);
+    s+=`<circle cx="${x}" cy="${y}" r="${r}" fill="#e9e3c8" opacity="${o}"/>`;
+  }
+
+  // 月亮
+  s+=`<circle cx="726" cy="118" r="180" fill="url(#f-moon)"/>`;
+  s+=`<circle cx="726" cy="118" r="42" fill="#ece5c6" opacity=".95"/>`;
+  s+=`<circle cx="712" cy="106" r="9" fill="#dbd3ae" opacity=".45"/>`;
+  s+=`<circle cx="739" cy="130" r="6" fill="#dbd3ae" opacity=".38"/>`;
+  s+=`<circle cx="719" cy="139" r="11" fill="#dbd3ae" opacity=".28"/>`;
+
+  // 水面
+  s+=`<rect y="400" width="1000" height="200" fill="url(#f-water)"/>`;
+
+  // 月亮的倒影
+  for(let i=0;i<9;i++){
+    const y=412+i*17;
+    const w=34+i*11;
+    s+=`<ellipse cx="726" cy="${y}" rx="${w}" ry="3" fill="#d8d2b0" opacity="${(0.11-i*0.009).toFixed(3)}" filter="url(#f-blur6)"/>`;
+  }
+
+  // 水面碎光
+  for(let i=0;i<26;i++){
+    const y=406+rnd()*180;
+    const x=80+rnd()*840;
+    const len=16+rnd()*56;
+    s+=`<line x1="${x.toFixed(1)}" y1="${y.toFixed(1)}" x2="${(x+len).toFixed(1)}" y2="${y.toFixed(1)}" stroke="#9fb5ad" stroke-width="1" opacity="${(0.11-rnd()*0.07).toFixed(3)}"/>`;
+  }
+
+  // 远处树林
+  for(let i=0;i<54;i++){
+    const x=i*20+rnd()*16-6;
+    const h=26+rnd()*58;
+    const w=7+rnd()*7;
+    s+=pine(x,402,h,w,'#061013',(0.55+rnd()*0.35).toFixed(2));
+  }
+  // 中景树林
+  for(let i=0;i<30;i++){
+    const x=i*36+rnd()*28-10;
+    const h=50+rnd()*80;
+    const w=11+rnd()*9;
+    s+=pine(x,404,h,w,'#040b0d',(0.75+rnd()*0.25).toFixed(2));
+  }
+
+  // 雾
+  s+=`<rect y="318" width="1000" height="110" fill="url(#f-fog)" opacity=".8" filter="url(#f-blur)"/>`;
+
+  // 小船
+  /* ---------- 可点击的小船 + 萤火虫 ---------- */
+  /* ---------- 围绕小船的萤火虫 ---------- */
+   // 萤火虫（在船之前画，压在船后面）
+  const flyData=[
+    { path:'M300,388 Q352,376 408,394 Q442,424 414,466 Q360,484 318,452 Q292,416 300,388',
+      dur:28, fd:22, col:'#a8b868',
+      vals:'0;0;0;.42;.55;.05;0;0;0;.30;.42;0;0;0',
+      kt:'0;.10;.22;.26;.30;.40;.52;.70;.80;.84;.88;.94;1;1' },
+
+    { path:'M400,510 Q448,478 452,432 Q436,398 388,400 Q346,420 358,470 Q376,502 400,510',
+      dur:34, fd:27, col:'#9aa858',
+      vals:'0;0;0;0;.35;.50;.08;0;0;0;.28;0;0',
+      kt:'0;.14;.30;.44;.48;.52;.60;.74;.88;.92;.95;1;1' },
+
+    { path:'M240,466 Q286,404 348,392 Q406,392 428,438 Q424,486 370,506 Q300,510 240,466',
+      dur:40, fd:31, col:'#b4bc72',
+      vals:'0;0;0;.25;.40;.05;0;0;0;0;.22;0;0',
+      kt:'0;.18;.38;.42;.46;.54;.66;.80;.90;.93;.96;1;1' },
+
+    { path:'M336,530 Q370,494 400,470 Q426,442 400,410 Q356,386 316,412 Q292,446 306,486 Q318,516 336,530',
+      dur:26, fd:19, col:'#a0ac60',
+      vals:'0;.30;.48;.06;0;0;0;.28;.42;0;0;0',
+      kt:'0;.04;.08;.18;.34;.56;.72;.76;.80;.90;.96;1' },
+
+    { path:'M226,500 Q260,442 320,410 Q382,392 424,414 Q450,444 424,478 Q374,514 310,512 Q256,510 226,500',
+      dur:44, fd:36, col:'#aab668',
+      vals:'0;0;0;0;0;.30;.45;.05;0;0;0;.20;0;0',
+      kt:'0;.14;.30;.48;.60;.64;.68;.76;.86;.92;.95;.97;1;1' }
+  ];
+
+  let fireflies='';
+  flyData.forEach(f=>{
+    fireflies+=`
+      <g pointer-events="none">
+        <animateMotion dur="${f.dur}s" repeatCount="indefinite" path="${f.path}"/>
+        <g>
+          <animate attributeName="opacity"
+            values="${f.vals}" keyTimes="${f.kt}"
+            dur="${f.fd}s" repeatCount="indefinite"/>
+          <circle r="22" fill="${f.col}" opacity=".022"/>
+          <circle r="11" fill="${f.col}" opacity=".05"/>
+          <circle r="4.5" fill="${f.col}" opacity=".14"/>
+          <circle r="1.6" fill="#e8ecc0" opacity=".7"/>
+        </g>
+      </g>`;
+  });
+  s+=`<g pointer-events="none">${fireflies}</g>`;
+
+  // 小船（可点击进入房屋）
+  s+=`<g id="forest-boat" pointer-events="all" style="cursor:pointer">
+    <rect x="286" y="392" width="192" height="140" fill="transparent"/>
+    <g transform="translate(-130,0)" opacity=".94">
+      <path d="M440,472 Q500,492 560,472 Q552,491 500,495 Q448,491 440,472 Z" fill="#030607"/>
+      <line x1="500" y1="428" x2="500" y2="474" stroke="#030607" stroke-width="3"/>
+      <path d="M503,430 L542,465 L503,465 Z" fill="#030607"/>
+    </g>
+  </g>`;
+
+  // 前景巨树
+  s+=pine(-40,650,640,175,'#010304',1);
+  s+=pine( 70,650,500,125,'#030708',1);
+  s+=pine(1045,650,680,185,'#010304',1);
+  s+=pine( 955,650,520,132,'#030708',1);
+
+  document.getElementById('forest-svg').innerHTML=
+    `<svg viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">${s}</svg>`;
+})();
+
+/* =========================================================
+   2. 公寓外景
+   ========================================================= */
+(function buildHouse(){
+  const rnd=mulberry32(20241016);
+  const J=(v,j)=>v+(rnd()-0.5)*j;
+
+  /* ---------- 手绘线条工具 ---------- */
+  function hLine(x1,x2,y,j){
+    const n=Math.max(2,Math.round(Math.abs(x2-x1)/70));
+    let d=`M${x1.toFixed(1)},${J(y,j).toFixed(1)}`;
+    for(let i=1;i<=n;i++){const x=x1+(x2-x1)*i/n;d+=` L${x.toFixed(1)},${J(y,j).toFixed(1)}`;}
+    return d;
+  }
+  function vLine(x,y1,y2,j){
+    const n=Math.max(2,Math.round(Math.abs(y2-y1)/70));
+    let d=`M${J(x,j).toFixed(1)},${y1.toFixed(1)}`;
+    for(let i=1;i<=n;i++){const y=y1+(y2-y1)*i/n;d+=` L${J(x,j).toFixed(1)},${y.toFixed(1)}`;}
+    return d;
+  }
+  function dLine(x1,y1,x2,y2,j){
+    const n=Math.max(2,Math.round(Math.hypot(x2-x1,y2-y1)/70));
+    let d=`M${x1.toFixed(1)},${J(y1,j).toFixed(1)}`;
+    for(let i=1;i<=n;i++){const t=i/n;d+=` L${(x1+(x2-x1)*t).toFixed(1)},${(y1+(y2-y1)*t+J(0,j)).toFixed(1)}`;}
+    return d;
+  }
+  function rectPath(x,y,w,h,j){
+    return hLine(x,x+w,y,j)+hLine(x,x+w,y+h,j)+vLine(x,y,y+h,j)+vLine(x+w,y,y+h,j);
+  }
+  function ink(d,color,w,op){
+    return `<path d="${d}" fill="none" stroke="${color}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" opacity="${op}"/>`;
+  }
+  function ink2(d,color,w,op){
+    return ink(d,color,w*2.2,op*0.22)+ink(d,color,w,op);
+  }
+  function circlePath(cx,cy,r,j){
+    const n=20; let d='';
+    for(let i=0;i<=n;i++){
+      const a=i/n*Math.PI*2;
+      const rr=r+(rnd()-0.5)*j;
+      d+=(i===0?'M':'L')+(cx+Math.cos(a)*rr).toFixed(1)+','+(cy+Math.sin(a)*rr).toFixed(1);
+    }
+    return d+'Z';
+  }
+
+  let s=`<defs>
+    <linearGradient id="h-sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#050a0d"/>
+      <stop offset="50%" stop-color="#0d1a1e"/>
+      <stop offset="100%" stop-color="#1a2823"/>
+    </linearGradient>
+    <linearGradient id="h-ground" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0f1513"/>
+      <stop offset="100%" stop-color="#030605"/>
+    </linearGradient>
+    <linearGradient id="h-wall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3a3a30"/>
+      <stop offset="55%" stop-color="#2c2c26"/>
+      <stop offset="100%" stop-color="#1c1e1b"/>
+    </linearGradient>
+    <linearGradient id="h-roof" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#17181a"/>
+      <stop offset="100%" stop-color="#0b0d0e"/>
+    </linearGradient>
+    <linearGradient id="h-warm" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffd98a"/>
+      <stop offset="55%" stop-color="#e8a94e"/>
+      <stop offset="100%" stop-color="#a5631e"/>
+    </linearGradient>
+    <linearGradient id="h-fog" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#8fa8a0" stop-opacity="0"/>
+      <stop offset="55%" stop-color="#7d9a92" stop-opacity=".28"/>
+      <stop offset="100%" stop-color="#8fa8a0" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="h-fog2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0b1214" stop-opacity="0"/>
+      <stop offset="60%" stop-color="#0b1214" stop-opacity=".55"/>
+      <stop offset="100%" stop-color="#0b1214" stop-opacity=".9"/>
+    </linearGradient>
+    <radialGradient id="h-lamp">
+      <stop offset="0%" stop-color="#ffd27a" stop-opacity=".5"/>
+      <stop offset="100%" stop-color="#ffd27a" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="h-winGlow">
+      <stop offset="0%" stop-color="#ffce78" stop-opacity=".75"/>
+      <stop offset="45%" stop-color="#eaa049" stop-opacity=".22"/>
+      <stop offset="100%" stop-color="#eaa049" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="h-blur"><feGaussianBlur stdDeviation="14"/></filter>
+    <filter id="h-blur8"><feGaussianBlur stdDeviation="8"/></filter>
+    <filter id="h-winBlur"><feGaussianBlur stdDeviation="5"/></filter>
+  </defs>`;
+
+  /* ---------- 天空 ---------- */
+  s+=`<rect width="1000" height="600" fill="url(#h-sky)"/>`;
+  for(let i=0;i<72;i++){
+    const x=(rnd()*1000).toFixed(1);
+    const y=(rnd()*300).toFixed(1);
+    const r=(rnd()*1.1+0.25).toFixed(2);
+    const o=(rnd()*0.45+0.06).toFixed(2);
+    s+=`<circle cx="${x}" cy="${y}" r="${r}" fill="#e9e3c8" opacity="${o}"/>`;
+  }
+  s+=`<path d="${circlePath(152,104,30,3)}" fill="#e8e0c0" opacity=".13"/>`;
+  s+=ink(circlePath(152,104,30,3),'#cfc6a2',1.2,0.3);
+
+  /* ---------- 地面 ---------- */
+  s+=`<rect y="520" width="1000" height="80" fill="url(#h-ground)"/>`;
+  s+=ink(hLine(0,1000,520,5),'#1e2a26',1.6,0.45);
+
+  /* ---------- 远景树影 ---------- */
+  for(let i=0;i<26;i++){
+    const x=i*40+rnd()*30-10;
+    const h=30+rnd()*46;
+    const w=9+rnd()*9;
+    s+=`<path d="M${x.toFixed(0)},520 L${(x-w).toFixed(0)},520 L${x.toFixed(0)},${(520-h).toFixed(0)} L${(x+w).toFixed(0)},520 Z" fill="#060d0f" opacity="${(0.45+rnd()*0.35).toFixed(2)}"/>`;
+  }
+
+  /* ================= 乔治亚式立面 ================= */
+  const HX1=280,HX2=720,HY1=134,HY2=520;
+
+  /* --- 墙面：灰绿夜色底，和背景同色系 --- */
+  s+=`<rect x="${HX1}" y="${HY1}" width="${HX2-HX1}" height="${HY2-HY1}" fill="url(#h-wall)"/>`;
+  // 夜色里的砖墙肌理（低对比）
+  for(let i=0;i<12;i++){
+    const x=HX1+rnd()*(HX2-HX1);
+    const y=HY1+rnd()*(HY2-HY1);
+    const rx=40+rnd()*90, ry=30+rnd()*70;
+    s+=`<ellipse cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" rx="${rx.toFixed(0)}" ry="${ry.toFixed(0)}" fill="#4a4e44" opacity="${(0.04+rnd()*0.05).toFixed(2)}"/>`;
+  }
+  // 底部更暗，融进地面
+  s+=`<rect x="${HX1}" y="${HY2-90}" width="${HX2-HX1}" height="90" fill="#0b100e" opacity=".55"/>`;
+
+  /* --- 砖纹（更淡，几乎融入） --- */
+  let brick='';
+  const rowH=13;
+  for(let y=HY1+6; y<HY2; y+=rowH){ brick+=hLine(HX1+2,HX2-2,y,1.8); }
+  let row=0;
+  for(let y=HY1+6; y<HY2-rowH; y+=rowH){
+    const off=(row%2)*13;
+    for(let x=HX1+8+off; x<HX2-6; x+=26){ brick+=vLine(x,y,y+rowH,1.4); }
+    row++;
+  }
+  s+=`<g opacity=".09">${ink(brick,'#0a0c0a',1.1,1)}</g>`;
+
+  /* --- 腰线 --- */
+  s+=ink(hLine(282,718,312,1.6),'#101410',1.8,0.28);
+  s+=ink(hLine(282,718,318,1.6),'#101410',1.4,0.22);
+
+  /* --- 墙体轮廓 --- */
+  s+=ink2(rectPath(HX1,HY1,HX2-HX1,HY2-HY1,1.6),'#080b0a',2,0.85);
+
+  /* --- 屋顶 --- */
+  s+=`<path d="M300,74 L700,74 L738,134 L262,134 Z" fill="url(#h-roof)"/>`;
+  let roof='';
+  roof+=hLine(300,700,74,2);
+  roof+=dLine(300,74,262,134,2);
+  roof+=dLine(700,74,738,134,2);
+  roof+=hLine(262,738,134,2);
+  s+=ink2(roof,'#050706',2,0.85);
+
+  /* --- 檐口 + 齿饰 --- */
+  s+=`<rect x="262" y="118" width="476" height="16" fill="#22241f"/>`;
+  let corn='';
+  corn+=hLine(260,740,118,1.6);
+  corn+=hLine(260,740,126,1.4);
+  corn+=hLine(260,740,134,1.6);
+  for(let x=268; x<732; x+=12){ corn+=vLine(x,126,134,1); }
+  s+=ink2(corn,'#050706',1.6,0.85);
+
+  /* --- 烟囱（左右对称） --- */
+  [352,612].forEach(cx=>{
+    s+=`<rect x="${cx}" y="26" width="36" height="52" fill="#1a1d1c"/>`;
+    let ch='';
+    ch+=rectPath(cx,26,36,52,1.4);
+    ch+=hLine(cx-3,cx+39,26,1.2);
+    ch+=hLine(cx-3,cx+39,32,1.2);
+    ch+=rectPath(cx+4,14,12,12,1);
+    ch+=rectPath(cx+20,14,12,12,1);
+    s+=ink2(ch,'#050706',1.6,0.85);
+  });
+
+  /* ---------- 窗户（重点：暖光 + 辉光） ---------- */
+  function sashWindow(cx,topY,w,h){
+    const x1=cx-w/2, x2=cx+w/2;
+    const gx=cx, gy=topY+h/2;
+    let g='';
+
+    // ① 窗外辉光（高斯模糊的暖色光晕）
+    g+=`<ellipse cx="${gx}" cy="${gy}" rx="${w*2.0}" ry="${h*0.85}" fill="url(#h-winGlow)" filter="url(#h-blur8)"/>`;
+    // ② 更小一圈的强光晕
+    g+=`<ellipse cx="${gx}" cy="${gy}" rx="${w*1.05}" ry="${h*0.65}" fill="url(#h-winGlow)" opacity=".8" filter="url(#h-winBlur)"/>`;
+
+    // ③ 窗内暖光底
+    g+=`<rect x="${x1}" y="${topY}" width="${w}" height="${h}" fill="url(#h-warm)"/>`;
+    // ④ 玻璃上的光斑
+    g+=`<ellipse cx="${gx}" cy="${gy}" rx="${w*0.42}" ry="${h*0.34}" fill="#fff1c2" opacity=".35" filter="url(#h-winBlur)"/>`;
+
+    // ⑤ 窗框
+    g+=ink2(rectPath(x1-3,topY-3,w+6,h+6,1.3),'#060809',1.8,0.95);
+    const my=topY+h/2;
+    g+=ink2(hLine(x1,x2,my,1),'#060809',2,0.95);
+    [[topY,my],[my,topY+h]].forEach(([ty,by])=>{
+      g+=ink(vLine(x1+w/3,ty,by,1),'#060809',1.2,0.8);
+      g+=ink(vLine(x1+w*2/3,ty,by,1),'#060809',1.2,0.8);
+      const mid=(ty+by)/2;
+      g+=ink(hLine(x1,x2,mid,1),'#060809',1.2,0.8);
+    });
+    // ⑥ 窗台 & 楣石
+    g+=ink2(hLine(x1-7,x2+7,topY+h+5,1),'#0d1210',2.4,0.9);
+    g+=ink2(hLine(x1-5,x2+5,topY-6,1),'#0d1210',2.2,0.85);
+
+    return `<g class="win">${g}</g>`;
+  }
+  [324,412,500,588,676].forEach(cx=>{ s+=sashWindow(cx,178,42,88); });
+  [324,412,588,676].forEach(cx=>{ s+=sashWindow(cx,382,42,88); });
+
+  /* --- 门廊 + 门 --- */
+  s+=`<rect x="448" y="356" width="104" height="22" fill="#22241f"/>`;
+  let porch='';
+  porch+=hLine(444,556,356,1.6);
+  porch+=hLine(444,556,364,1.3);
+  porch+=hLine(444,556,378,1.8);
+  porch+=vLine(448,356,378,1.2);
+  porch+=vLine(552,356,378,1.2);
+  for(let x=452; x<548; x+=10){ porch+=vLine(x,364,372,1); }
+  [460,540].forEach(cx=>{
+    porch+=rectPath(cx-5,378,10,138,1.4);
+    porch+=hLine(cx-10,cx+10,378,1.2);
+    porch+=hLine(cx-10,cx+10,386,1.2);
+    porch+=vLine(cx-10,378,386,1);
+    porch+=vLine(cx+10,378,386,1);
+    porch+=hLine(cx-9,cx+9,510,1.2);
+    porch+=hLine(cx-9,cx+9,518,1.2);
+  });
+  s+=ink2(porch,'#050706',1.8,0.9);
+
+  /* --- 门（可点击） --- */
+  s+=`<g id="house-door" pointer-events="all" style="cursor:pointer">`;
+  s+=`<circle cx="500" cy="450" r="90" fill="url(#h-lamp)" class="door-glow" pointer-events="none"/>`;
+  s+=`<rect x="470" y="378" width="60" height="16" fill="#ffd98a" opacity=".38"/>`;
+  let fan='';
+  fan+=rectPath(470,378,60,16,1);
+  for(let i=1;i<5;i++){ fan+=vLine(470+i*12,378,394,0.8); }
+  s+=ink2(fan,'#060809',1.5,0.9);
+  s+=`<rect x="470" y="394" width="60" height="126" fill="#2b211a"/>`;
+  s+=`<rect x="474" y="398" width="52" height="118" fill="#c8843a" opacity=".35" filter="url(#h-winBlur)"/>`;
+  let door='';
+  door+=rectPath(470,394,60,126,1.5);
+  door+=vLine(500,394,420,1.1);
+  door+=rectPath(477,404,18,44,1);
+  door+=rectPath(505,404,18,44,1);
+  door+=rectPath(477,458,18,50,1);
+  door+=rectPath(505,458,18,50,1);
+  s+=ink2(door,'#060809',1.7,0.95);
+  s+=`<circle cx="522" cy="462" r="3.6" fill="#c9a45a"/>`;
+  s+=`<circle cx="522" cy="462" r="3.6" fill="none" stroke="#060809" stroke-width="1"/>`;
+  s+=`</g>`;
+
+  /* --- 台阶 --- */
+  s+=`<rect x="452" y="520" width="96" height="8" fill="#1a1d1b"/>`;
+  s+=`<rect x="442" y="528" width="116" height="8" fill="#111412"/>`;
+  let step='';
+  step+=hLine(452,548,520,1.2);
+  step+=hLine(452,548,528,1.2);
+  step+=hLine(442,558,536,1.4);
+  s+=ink2(step,'#050706',1.5,0.75);
+
+  /* --- 铁艺围栏 --- */
+let fence='';        // 只放 M/L 路径
+let fenceFill='';    // 放填充三角和圆点
+for(let x=124; x<=876; x+=26){
+  if(x>440 && x<560) continue;
+  fence+=vLine(x,538,590,1.6);
+  fenceFill+=`<path d="M${(x-4).toFixed(1)},540 L${x.toFixed(1)},526 L${(x+4).toFixed(1)},540 Z" fill="#060807" opacity=".85"/>`;
+}
+fence+=hLine(120,440,550,2.5);
+fence+=hLine(560,880,550,2.5);
+fence+=hLine(120,440,580,2.5);
+fence+=hLine(560,880,580,2.5);
+[120,440,560,880].forEach(x=>{
+  fence+=rectPath(x-5,528,10,64,1.4);
+  fenceFill+=`<circle cx="${x}" cy="524" r="5" fill="#060807" opacity=".85"/>`;
+});
+s+=fenceFill;
+s+=ink(fence,'#060807',2,0.8);
+
+  /* --- 环境氛围层：让建筑融进夜色 --- */
+  // 底部升起的夜色雾
+  s+=`<rect x="240" y="360" width="520" height="200" fill="url(#h-fog2)" pointer-events="none" filter="url(#h-blur8)"/>`;
+  // 横向飘过的雾
+  s+=`<rect y="380" width="1000" height="220" fill="url(#h-fog)" opacity=".5" filter="url(#h-blur)" pointer-events="none"/>`;
+  // 整体再压一层冷色薄纱，统一色调
+  s+=`<rect x="${HX1-20}" y="${HY1-10}" width="${HX2-HX1+40}" height="${HY2-HY1+20}" fill="#0d1a1a" opacity=".22" pointer-events="none"/>`;
+
+  document.getElementById('house-svg').innerHTML=
+    `<svg viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">${s}</svg>`;
+
+document.getElementById('house-door').addEventListener('click',function(e){
+  e.stopPropagation();
+  if(current!=='house') return;   // 只有 house 场景才能开门
+  if(navLocked) return;
+  tick(150,0.14,0.06);
+  goTo('room');
+});
+})();
+
+/* =========================================================
+   3. OC 数据 —— ★ 在这里替换成你自己的设定 ★
+   ========================================================= */
+const OCS = [
+  /* 大厅 6 个 */
+  { key:'Ⅰ', name:'【角色姓名】', sub:'【称号】', rows:[['代号','【】'],['年龄','【】'],['身份','【】'],['外貌','【】'],['性格','【】'],['背景','【】'],['关系','【】']] },
+  { key:'Ⅱ', name:'【角色姓名】', sub:'【称号】', rows:[['代号','【】'],['年龄','【】'],['身份','【】'],['外貌','【】'],['性格','【】'],['背景','【】'],['关系','【】']] },
+  { key:'Ⅲ', name:'【角色姓名】', sub:'【称号】', rows:[['代号','【】'],['年龄','【】'],['身份','【】'],['外貌','【】'],['性格','【】'],['背景','【】'],['关系','【】']] },
+  { key:'Ⅳ', name:'【角色姓名】', sub:'【称号】', rows:[['代号','【】'],['年龄','【】'],['身份','【】'],['外貌','【】'],['性格','【】'],['背景','【】'],['关系','【】']] },
+  { key:'Ⅴ', name:'【角色姓名】', sub:'【称号】', rows:[['代号','【】'],['年龄','【】'],['身份','【】'],['外貌','【】'],['性格','【】'],['背景','【】'],['关系','【】']] },
+  { key:'Ⅵ', name:'【角色姓名】', sub:'【称号】', rows:[['代号','【】'],['年龄','【】'],['身份','【】'],['外貌','【】'],['性格','【】'],['背景','【】'],['关系','【】']] },
+
+  /* 客厅 5 个 */
+  { key:'Ⅰ', name:'【角色姓名】', sub:'【称号】', rows:[['代号','【】'],['年龄','【】'],['身份','【】'],['外貌','【】'],['性格','【】'],['背景','【】'],['关系','【】']] },
+  { key:'Ⅱ', name:'【角色姓名】', sub:'【称号】', rows:[['代号','【】'],['年龄','【】'],['身份','【】'],['外貌','【】'],['性格','【】'],['背景','【】'],['关系','【】']] },
+  { key:'Ⅲ', name:'【角色姓名】', sub:'【称号】', rows:[['代号','【】'],['年龄','【】'],['身份','【】'],['外貌','【】'],['性格','【】'],['背景','【】'],['关系','【】']] },
+  { key:'Ⅳ', name:'【角色姓名】', sub:'【称号】', rows:[['代号','【】'],['年龄','【】'],['身份','【】'],['外貌','【】'],['性格','【】'],['背景','【】'],['关系','【】']] },
+  { key:'Ⅴ', name:'【角色姓名】', sub:'【称号】', rows:[['代号','【】'],['年龄','【】'],['身份','【】'],['外貌','【】'],['性格','【】'],['背景','【】'],['关系','【】']] },
+
+  /* 卧室 3 个 */
+  { key:'Ⅰ', name:'【角色姓名】', sub:'【称号】', rows:[['代号','【】'],['年龄','【】'],['身份','【】'],['外貌','【】'],['性格','【】'],['背景','【】'],['关系','【】']] },
+  { key:'Ⅱ', name:'【角色姓名】', sub:'【称号】', rows:[['代号','【】'],['年龄','【】'],['身份','【】'],['外貌','【】'],['性格','【】'],['背景','【】'],['关系','【】']] },
+  { key:'Ⅲ', name:'【角色姓名】', sub:'【称号】', rows:[['代号','【】'],['年龄','【】'],['身份','【】'],['外貌','【】'],['性格','【】'],['背景','【】'],['关系','【】']] },
+
+  /* 卫生间 2 个 */
+  { key:'Ⅰ', name:'【角色姓名】', sub:'【称号】', rows:[['代号','【】'],['年龄','【】'],['身份','【】'],['外貌','【】'],['性格','【】'],['背景','【】'],['关系','【】']] },
+  { key:'Ⅱ', name:'【角色姓名】', sub:'【称号】', rows:[['代号','【】'],['年龄','【】'],['身份','【】'],['外貌','【】'],['性格','【】'],['背景','【】'],['关系','【】']] },
+
+  /* 书房 3 个 */
+  { key:'Ⅰ', name:'【角色姓名】', sub:'【称号】', rows:[['代号','【】'],['年龄','【】'],['身份','【】'],['外貌','【】'],['性格','【】'],['背景','【】'],['关系','【】']] },
+  { key:'Ⅱ', name:'【角色姓名】', sub:'【称号】', rows:[['代号','【】'],['年龄','【】'],['身份','【】'],['外貌','【】'],['性格','【】'],['背景','【】'],['关系','【】']] },
+  { key:'Ⅲ', name:'【角色姓名】', sub:'【称号】', rows:[['代号','【】'],['年龄','【】'],['身份','【】'],['外貌','【】'],['性格','【】'],['背景','【】'],['关系','【】']] }
+];
+
+/* =========================================================
+   3.5 新档案数据（书房纸沓点开显示的 OC）
+   ========================================================= */
+const FRESH_OC = {
+  key:'N',
+  name:'【新角色姓名】',
+  sub:'【未归档的称号】',
+
+  /* ★ 图片位置：把下面的字符串改成你的图片路径（支持 data URL）
+     留空 '' 则显示「此处放置图片」的虚线占位 */
+  avatar:'',
+
+  /* 字段标签用了 i18n 的 key（bioName / fAge / fRole ...），
+     右侧的值你自己填 */
+  rows:[
+    ['bioName',      '【新角色的姓名】'],
+    ['fAge',         '【年龄】'],
+    ['fRole',        '【身份 / 职业】'],
+    ['fAppearance',  '【外貌：发色、瞳色、常穿的衣服……】'],
+    ['fPersonality', '【性格】'],
+    ['fBackground',  '【写下 ta 的故事】'],
+    ['fRelations',   '【与其他角色的联系】']
+  ]
+};
+/* =========================================================
+   4. 场景切换
+   ========================================================= */
+let current='';
+let navLocked=false;
+const backBtn=document.getElementById('backBtn');
+const roomPrevBtn=document.getElementById('roomPrevBtn');
+const roomNextBtn=document.getElementById('roomNextBtn');
+const ROOM_SCENES=['room','room2','room5','room3','room4'];  // 大厅、客厅、书房、卧室、卫生间
+
+function goTo(id){
+  if(navLocked) return;
+  if(current===id) return;
+  navLocked=true;
+
+  document.querySelectorAll('.scene').forEach(sc=>{
+    sc.classList.toggle('active', sc.id==='scene-'+id);
+    sc.style.pointerEvents='none';
+  });
+  current=id;
+
+  setTimeout(()=>{
+    document.querySelectorAll('.scene').forEach(sc=>{
+      sc.style.pointerEvents='';
+    });
+    navLocked=false;
+  }, 700);
+
+  const inRoom=ROOM_SCENES.includes(id);
+
+  // 返回按钮
+  if(id==='forest'){
+    backBtn.classList.remove('show');
+  }else{
+    backBtn.classList.add('show');
+    backBtn.textContent = (id==='house') ? t('backForest') : t('backOutside');
+  }
+
+  // 房间左右箭头
+  if(inRoom){
+    roomPrevBtn.classList.add('show');
+    roomNextBtn.classList.add('show');
+  }else{
+    roomPrevBtn.classList.remove('show');
+    roomNextBtn.classList.remove('show');
+  }
+
+  if(inRoom) resetSecret();
+}
+
+document.getElementById('forest-boat').addEventListener('click',e=>{
+  e.stopPropagation();
+  if(current!=='forest') return;
+  if(navLocked) return;
+  tick(210,0.12,0.05);
+  goTo('house');
+});
+
+backBtn.addEventListener('click',e=>{
+  e.stopPropagation();
+  if(navLocked) return;
+  tick(160,0.1,0.045);
+  if(ROOM_SCENES.includes(current)) goTo('house');
+  else if(current==='house') goTo('forest');
+});
+
+roomPrevBtn.addEventListener('click',e=>{
+  e.stopPropagation();
+  if(navLocked) return;
+  if(!ROOM_SCENES.includes(current)) return;
+  const idx=ROOM_SCENES.indexOf(current);
+  const next=ROOM_SCENES[(idx-1+ROOM_SCENES.length)%ROOM_SCENES.length];
+  tick(180,0.08,0.04);
+  goTo(next);
+});
+
+roomNextBtn.addEventListener('click',e=>{
+  e.stopPropagation();
+  if(navLocked) return;
+  if(!ROOM_SCENES.includes(current)) return;
+  const idx=ROOM_SCENES.indexOf(current);
+  const next=ROOM_SCENES[(idx+1)%ROOM_SCENES.length];
+  tick(180,0.08,0.04);
+  goTo(next);
+});
+
+/* =========================================================
+   5. 画框 → OC 卡片
+   ========================================================= */
+const overlay=document.getElementById('overlay');
+const cardTitle=document.getElementById('cardTitle');
+const cardName=document.getElementById('cardName');
+const cardSub=document.getElementById('cardSub');
+const cardBody=document.getElementById('cardBody');
+
+
+document.querySelectorAll('.frame[data-i]').forEach(el=>{
+  el.addEventListener('click',e=>{
+    e.stopPropagation();
+    if(!ROOM_SCENES.includes(current)) return;
+    tick(260,0.1,0.05);
+    const oc = OCS[+el.dataset.i];
+    if(!oc) return;
+    currentOC = oc;
+    renderOC();
+    overlay.classList.add('show');
+  });
+});
+
+document.getElementById('closeCard').addEventListener('click',()=>{
+  overlay.classList.remove('show');
+  tick(140,0.09,0.04);
+});
+overlay.addEventListener('click',e=>{
+  if(e.target===overlay){ overlay.classList.remove('show'); tick(140,0.09,0.04); }
+});
+
+/* =========================================================
+   6. 隐藏彩蛋：左三下 + 右两下 → 个人简介
+   ========================================================= */
+const bioOverlay=document.getElementById('bioOverlay');
+let leftN=0, rightN=0;
+
+function resetSecret(){ leftN=0; rightN=0; }
+
+document.addEventListener('click',e=>{
+  const t=e.target;
+  if(!t || typeof t.closest !== 'function') return;
+
+  // 只在屋内四个场景生效
+  const inRoom = ROOM_SCENES.some(r=>t.closest('#scene-'+r));
+  if(!inRoom) return;
+
+  if(navLocked) return;
+  if(overlay.classList.contains('show')||bioOverlay.classList.contains('show')) return;
+
+  // 箭头、相框、返回按钮的点击不计入
+  if(t.closest('.room-nav')) return;
+  if(t.closest('.frame')) return;
+  if(t.closest('#backBtn')) return;
+
+  if(e.clientX < window.innerWidth/2) leftN++;
+  else rightN++;
+
+  if(leftN>=3 && rightN>=2){
+    resetSecret();
+    tick(320,0.35,0.05);
+    setTimeout(()=>bioOverlay.classList.add('show'),120);
+  }
+});
+
+bioOverlay.addEventListener('click',e=>{
+  if(e.target===bioOverlay){
+    bioOverlay.classList.remove('show');
+    tick(140,0.09,0.04);
+  }
+});
+
+/* 新版纸张档案 */
+const freshOverlay=document.getElementById('freshOverlay');
+
+document.getElementById('freshPaper').addEventListener('click',e=>{
+  e.stopPropagation();
+  if(current!=='room5') return;
+  if(navLocked) return;
+  tick(300,0.15,0.05);
+  renderFreshOC();          // ← 渲染 OC 信息
+  freshOverlay.classList.add('show');
+});
+
+freshOverlay.addEventListener('click',e=>{
+  if(e.target===freshOverlay){
+    freshOverlay.classList.remove('show');
+    tick(140,0.09,0.04);
+  }
+});
+
+/* ESC 关闭 */
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    overlay.classList.remove('show');
+    bioOverlay.classList.remove('show');
+    freshOverlay.classList.remove('show');
+    flowerOverlay.classList.remove('show');
+    folioOverlay.classList.remove('show');
+  }
+});
+
+/* =========================================================
+   6.6 镜子彩蛋
+   ========================================================= */
+const mirrorOverlay = document.getElementById('mirrorOverlay');
+const mirrorInput   = document.getElementById('mirrorInput');
+const mirrorMsg     = document.getElementById('mirrorMsg');
+const bloodFlash    = document.getElementById('bloodFlash');
+const MIRROR_PASS   = 'BloodyMary';
+
+document.getElementById('mirror').addEventListener('click', e=>{
+  e.stopPropagation();
+  if(current!=='room4') return;
+  if(navLocked) return;
+  if(overlay.classList.contains('show')) return;
+  if(bioOverlay.classList.contains('show')) return;
+  if(freshOverlay.classList.contains('show')) return;
+  if(mirrorOverlay.classList.contains('show')) return;
+
+  tick(300,0.15,0.05);
+  mirrorInput.value='';
+  mirrorMsg.textContent='';
+  mirrorMsg.classList.remove('err');
+  mirrorOverlay.classList.add('show');
+  setTimeout(()=>mirrorInput.focus(), 280);
+});
+
+/* 生成 N 个随机血斑 */
+function spawnSplat(container, count){
+  container.innerHTML='';
+  for(let i=0;i<count;i++){
+    const s=document.createElement('span');
+    const size=18+Math.random()*90;
+    const x=Math.random()*100;
+    const y=Math.random()*100;
+    s.style.left=x+'%';
+    s.style.top=y+'%';
+    s.style.width=size+'px';
+    s.style.height=size*(0.7+Math.random()*0.5)+'px';
+    s.style.animationDelay=(Math.random()*0.35)+'s';
+    s.style.animationDuration=(0.7+Math.random()*0.5)+'s';
+    /* 不规则形状 */
+    s.style.borderRadius=
+      (40+Math.random()*40)+'% '+
+      (40+Math.random()*40)+'% '+
+      (40+Math.random()*40)+'% '+
+      (40+Math.random()*40)+'%';
+    container.appendChild(s);
+  }
+}
+
+/* 生成血滴 */
+function spawnDrip(container, count){
+  container.innerHTML='';
+  for(let i=0;i<count;i++){
+    const s=document.createElement('span');
+    const x=Math.random()*100;
+    const h=60+Math.random()*180;
+    s.style.left=x+'%';
+    s.style.height=h+'px';
+    s.style.width=(2+Math.random()*4)+'px';
+    s.style.animationDelay=(Math.random()*0.9)+'s';
+    s.style.animationDuration=(1.6+Math.random()*1.2)+'s';
+    container.appendChild(s);
+  }
+}
+
+/* 低频轰鸣——连续心跳 */
+function playThunder(){
+  try{
+    if(!actx) actx=new (window.AudioContext||window.webkitAudioContext)();
+    const t0=actx.currentTime;
+
+    // 低频轰鸣 + 心跳
+    const beats=[0, 0.28, 0.5, 1.05, 1.4, 1.85, 2.2];
+    beats.forEach((off,i)=>{
+      const t=t0+off;
+      const o=actx.createOscillator();
+      const g=actx.createGain();
+      o.type = i%2 ? 'sawtooth' : 'sine';
+      o.frequency.setValueAtTime(i%2 ? 55 : 42, t);
+      o.frequency.exponentialRampToValueAtTime(24, t+0.22);
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.12, t+0.015);
+      g.gain.exponentialRampToValueAtTime(0.0005, t+0.42);
+      o.connect(g); g.connect(actx.destination);
+      o.start(t); o.stop(t+0.5);
+    });
+
+    // 高频嘶鸣（雷电）
+    const n=actx.createOscillator();
+    const ng=actx.createGain();
+    n.type='square';
+    n.frequency.setValueAtTime(1400, t0+0.02);
+    n.frequency.exponentialRampToValueAtTime(180, t0+0.6);
+    ng.gain.setValueAtTime(0.05, t0+0.02);
+    ng.gain.exponentialRampToValueAtTime(0.0005, t0+0.7);
+    n.connect(ng); ng.connect(actx.destination);
+    n.start(t0+0.02); n.stop(t0+0.75);
+  }catch(e){}
+}
+
+function mirrorFire(){
+  mirrorOverlay.classList.remove('show');
+  mirrorInput.blur();
+
+  // 屏幕震抖
+  document.body.classList.add('screen-shake');
+  setTimeout(()=>document.body.classList.remove('screen-shake'), 1400);
+
+  // 血雷层
+  bloodFlash.classList.remove('on');
+  void bloodFlash.offsetWidth;
+  bloodFlash.classList.add('on');
+
+  // 血斑
+  const splat=document.getElementById('bloodSplat');
+  spawnSplat(splat, 22);
+  splat.classList.add('on');
+
+  // 血滴
+  const drip=document.getElementById('bloodDrip');
+  spawnDrip(drip, 10);
+  drip.classList.add('on');
+
+  // 屏幕撕裂线
+  ['glitch1','glitch2','glitch3'].forEach((id,i)=>{
+    const el=document.getElementById(id);
+    el.classList.remove('on');
+    void el.offsetWidth;
+    setTimeout(()=>el.classList.add('on'), 60+i*90);
+  });
+
+  // 音效
+  playThunder();
+
+  // 清理
+  setTimeout(()=>{
+    bloodFlash.classList.remove('on');
+    splat.classList.remove('on');
+    drip.classList.remove('on');
+    ['glitch1','glitch2','glitch3'].forEach(id=>
+      document.getElementById(id).classList.remove('on'));
+  }, 2700);
+}
+
+mirrorInput.addEventListener('input', ()=>{
+  const v = mirrorInput.value;
+  if(v === MIRROR_PASS){
+    mirrorFire();
+  } else if(v.length > 0){
+    mirrorMsg.textContent = t('mirrorErr');
+    mirrorMsg.classList.add('err');
+  } else {
+    mirrorMsg.textContent = '';
+    mirrorMsg.classList.remove('err');
+  }
+});
+
+mirrorInput.addEventListener('keydown', e=>{
+  if(e.key === 'Enter'){
+    e.preventDefault();
+    if(mirrorInput.value === MIRROR_PASS) mirrorFire();
+    else if(mirrorInput.value.length > 0){
+      mirrorMsg.textContent = t('mirrorErr');
+      mirrorMsg.classList.add('err');
+    }
+  }
+});
+
+mirrorOverlay.addEventListener('click', e=>{
+  if(e.target === mirrorOverlay){
+    mirrorOverlay.classList.remove('show');
+    tick(140,0.09,0.04);
+  }
+});
+
+/* =========================================================
+   6.65 客厅花朵 → 约稿条
+   ========================================================= */
+
+/* ★ 业务列表：想加多少条就加多少条，会自动往下排 */
+const COMMISSIONS = [
+  { name:'头像 · ICON',      price:'¥150+', duration:'7-10 天',  note:'半身/胸像，可带简单背景' },
+  { name:'半身 · HALF BODY', price:'¥300+', duration:'10-14 天', note:'复杂服饰另议' },
+  { name:'全身 · FULL BODY', price:'¥500+', duration:'14-21 天', note:'含基础立绘' },
+  { name:'Q版 · CHIBI',      price:'¥100+', duration:'3-5 天',   note:'' }
+];
+
+/* ★ 联系方式：href 改成你的链接，value 是显示文字 */
+const CONTACT = {
+  href : 'https://example.com/your_link',
+  value: '@your_name'
+};
+
+const flowerOverlay       = document.getElementById('flowerOverlay');
+const commissionList      = document.getElementById('commissionList');
+const commissionContact   = document.getElementById('commissionContact');
+const commissionContactValue = document.getElementById('commissionContactValue');
+
+function renderCommission(){
+  commissionList.innerHTML = COMMISSIONS.map(item=>`
+    <div class="commission-item">
+      <div>
+        <div class="commission-item-name">${item.name}</div>
+        ${item.note ? `<div class="commission-item-note">${item.note}</div>` : ''}
+      </div>
+      <div class="commission-item-meta">
+        <div class="commission-item-price">${item.price}</div>
+        <div class="commission-item-duration">${item.duration}</div>
+      </div>
+    </div>
+  `).join('');
+
+  commissionContact.href = CONTACT.href;
+  commissionContactValue.textContent = CONTACT.value;
+}
+
+document.getElementById('flowerClick').addEventListener('click', e=>{
+  e.stopPropagation();
+  if(current !== 'room2') return;
+  if(navLocked) return;
+  if(overlay.classList.contains('show')) return;
+  if(bioOverlay.classList.contains('show')) return;
+  if(freshOverlay.classList.contains('show')) return;
+  if(mirrorOverlay.classList.contains('show')) return;
+  if(flowerOverlay.classList.contains('show')) return;
+
+  tick(280,0.12,0.05);
+  renderCommission();
+  flowerOverlay.classList.add('show');
+});
+
+document.getElementById('flowerClose').addEventListener('click', e=>{
+  e.stopPropagation();
+  flowerOverlay.classList.remove('show');
+  tick(140,0.09,0.04);
+});
+flowerOverlay.addEventListener('click', e=>{
+  if(e.target === flowerOverlay){
+    flowerOverlay.classList.remove('show');
+    tick(140,0.09,0.04);
+  }
+});
+
+/* =========================================================
+   6.66 书房书架 · 整排书 + 作品集
+   ========================================================= */
+
+/* ★ 作品集内容：img 留空则显示 ✦ 占位 */
+const PORTFOLIO = [
+  { title:'【作品一】', img:'' },
+  { title:'【作品二】', img:'' },
+  { title:'【作品三】', img:'' },
+  { title:'【作品四】', img:'' },
+  { title:'【作品五】', img:'' },
+  { title:'【作品六】', img:'' },
+  { title:'【作品七】', img:'' },
+  { title:'【作品八】', img:'' },
+  { title:'【作品九】', img:'' },
+  { title:'【作品十】', img:'' },
+  { title:'【作品十一】', img:'' },
+  { title:'【作品十二】', img:'' }
+];
+
+/* 书脊配色池：[暗, 中, 亮]，每本随机取一组 */
+const BOOK_SPINES = [
+  ['#4a1414','#7a2828','#8a3030'],   // 暗红
+  ['#2a3a18','#4a5a28','#5a6a30'],   // 墨绿
+  ['#2a1e42','#3e2c62','#503878'],   // 深紫
+  ['#1e2c44','#324466','#3a4a78'],   // 藏蓝
+  ['#5a2e1c','#8a4830','#a05038'],   // 赭石
+  ['#1e3a20','#2c5230','#386a3a'],   // 松绿
+  ['#5a3a1c','#8a5c30','#9a6a38'],   // 棕金
+  ['#3e1c10','#5a2818','#7a3828'],   // 焦褐
+  ['#342046','#4a3064','#5e3c80'],   // 暗罗兰
+  ['#1e3636','#2c5252','#3a6a6a'],   // 灰青
+];
+
+const folioOverlay = document.getElementById('folioOverlay');
+const folioTrack   = document.getElementById('folioTrack');
+
+/* ---- 渲染作品集内容 ---- */
+function renderFolio(){
+  const cell = w => `
+    <div class="folio-item">
+      <div class="folio-thumb">${
+        w.img ? `<img src="${w.img}" alt="">` : `<span class="folio-ph">✦</span>`
+      }</div>
+      <div class="folio-name">${w.title}</div>
+    </div>`;
+
+  const half = `<div class="folio-half"><div class="folio-grid">${
+    PORTFOLIO.map(cell).join('')
+  }</div></div>`;
+
+  /* 两份首尾相接 → CSS 滚 -50% 时无缝循环 */
+  folioTrack.innerHTML = half + half;
+}
+
+/* ---- 滚动控制：自动 + 手动，共用一个 offset ---- */
+const folioViewport = document.querySelector('.folio-viewport');
+
+const FOLIO_AUTO = 28;      // 自动滚动速度 px/s
+
+let folioOffset   = 0;
+let folioVel      = 0;
+let folioHalfH    = 0;
+let folioLastT    = 0;
+let folioRunning  = false;
+let folioDragging = false;
+
+function folioMeasure(){
+  const first = folioTrack.firstElementChild;
+  folioHalfH = first ? first.offsetHeight : 0;
+}
+
+function folioApply(){
+  if(folioHalfH <= 0) return;
+  const y = ((folioOffset % folioHalfH) + folioHalfH) % folioHalfH;
+  folioTrack.style.transform = `translateY(${-y}px)`;
+}
+
+function folioTick(t){
+  if(!folioRunning) return;
+  if(!folioLastT) folioLastT = t;
+  const dt = Math.min(0.064, (t - folioLastT) / 1000);
+  folioLastT = t;
+
+  if(!folioDragging && !folioViewport.matches(':hover')){
+    folioOffset += FOLIO_AUTO * dt;
+  }
+
+  if(folioVel !== 0){
+    folioOffset += folioVel * dt;
+    folioVel *= Math.exp(-4.5 * dt);
+    if(Math.abs(folioVel) < 4) folioVel = 0;
+  }
+
+  if(folioHalfH > 0 && Math.abs(folioOffset) > 1e7){
+    folioOffset %= folioHalfH;
+  }
+
+  folioApply();
+  requestAnimationFrame(folioTick);
+}
+
+function folioStart(){
+  if(folioRunning) return;
+  folioRunning = true;
+  folioLastT = 0;
+  requestAnimationFrame(folioTick);
+}
+
+function folioStop(){
+  folioRunning = false;
+  folioVel = 0;
+  folioDragging = false;
+}
+
+function folioReset(){
+  folioMeasure();
+  folioOffset = 0;
+  folioVel = 0;
+  folioApply();
+  folioStart();
+}
+
+/* ---- 鼠标滚轮 ---- */
+folioViewport.addEventListener('wheel', e=>{
+  if(!folioOverlay.classList.contains('show')) return;
+  e.preventDefault();
+  folioOffset += e.deltaY;
+}, {passive:false});
+
+/* ---- 触摸滑动 ---- */
+let folioTouchY = 0, folioTouchT = 0;
+
+folioViewport.addEventListener('touchstart', e=>{
+  if(!folioOverlay.classList.contains('show')) return;
+  folioDragging = true;
+  folioVel = 0;
+  folioTouchY = e.touches[0].clientY;
+  folioTouchT = performance.now();
+}, {passive:true});
+
+folioViewport.addEventListener('touchmove', e=>{
+  if(!folioOverlay.classList.contains('show')) return;
+  const y  = e.touches[0].clientY;
+  const dy = folioTouchY - y;
+  folioOffset += dy;
+
+  const now = performance.now();
+  const dt  = now - folioTouchT;
+  if(dt > 0){
+    const v = dy / dt * 1000;
+    folioVel = folioVel * 0.4 + v * 0.6;
+  }
+  folioTouchY = y;
+  folioTouchT = now;
+  e.preventDefault();
+}, {passive:false});
+
+function folioTouchEnd(){
+  folioDragging = false;
+  folioVel = Math.max(-2000, Math.min(2000, folioVel));
+}
+folioViewport.addEventListener('touchend', folioTouchEnd, {passive:true});
+folioViewport.addEventListener('touchcancel', folioTouchEnd, {passive:true});
+
+window.addEventListener('resize', ()=>{
+  if(folioOverlay.classList.contains('show')) folioMeasure();
+});
+
+/* ---- 生成整架书 ---- */
+(function buildShelf(){
+  const rows = document.querySelectorAll('.shelf-row');
+  if(!rows.length) return;
+
+  /* 作品集固定藏在第 2 层（index 1），具体第几本随机 */
+  const FOLIO_ROW = 1;
+
+  rows.forEach((row, ri)=>{
+    row.innerHTML = '';
+
+    const count = 9 + Math.floor(Math.random()*4);   // 每层 9~12 本
+    const raw = [];
+    for(let i=0;i<count;i++) raw.push(0.65 + Math.random()*0.8);
+    const total = raw.reduce((a,b)=>a+b,0);
+
+    /* 避开两端，免得贴着书架边缘太显眼 */
+    const folioIdx = (ri === FOLIO_ROW)
+      ? 2 + Math.floor(Math.random()*(count-4))
+      : -1;
+
+    for(let i=0;i<count;i++){
+      const book = document.createElement('div');
+      book.className = 'shelf-book';
+
+      if(i === folioIdx){
+        book.classList.add('folio-book');
+        book.id = 'folioBook';
+        book.title = '作品集';
+      }
+
+      const w = (raw[i]/total)*100;
+      book.style.flex   = `0 0 ${w.toFixed(2)}%`;
+      book.style.height = (76 + Math.random()*22).toFixed(1) + '%';
+
+      const sp = BOOK_SPINES[Math.floor(Math.random()*BOOK_SPINES.length)];
+      book.style.background =
+        `linear-gradient(180deg, ${sp[0]} 0%, ${sp[1]} 14%, ${sp[2]} 50%, ${sp[1]} 86%, ${sp[0]} 100%)`;
+
+      row.appendChild(book);
+    }
+  });
+
+  /* ---- 绑定唯一那本可点的书 ---- */
+  const folioBookEl = document.getElementById('folioBook');
+  if(!folioBookEl) return;
+
+  folioBookEl.addEventListener('click', e=>{
+    e.stopPropagation();
+    if(current !== 'room5') return;
+    if(navLocked) return;
+    if(overlay.classList.contains('show')) return;
+    if(bioOverlay.classList.contains('show')) return;
+    if(freshOverlay.classList.contains('show')) return;
+    if(mirrorOverlay.classList.contains('show')) return;
+    if(flowerOverlay.classList.contains('show')) return;
+    if(folioOverlay.classList.contains('show')) return;
+
+    tick(300,0.13,0.05);
+    renderFolio();
+    folioOverlay.classList.add('show');
+    requestAnimationFrame(folioReset);
+  });
+})();
+
+/* ---- 关闭 ---- */
+function closeFolio(){
+  folioOverlay.classList.remove('show');
+  folioStop();
+  tick(140,0.09,0.04);
+}
+document.getElementById('folioClose').addEventListener('click', e=>{
+  e.stopPropagation();
+  closeFolio();
+});
+folioOverlay.addEventListener('click', e=>{
+  if(e.target === folioOverlay) closeFolio();
+});
+
+/* =========================================================
+   6.7 多语言切换
+   ========================================================= */
+const I18N = {
+  'zh-CN': {
+    hintForest:'找到进入公寓的关键物品',
+    hintHouse:'推 开 那 扇 门',
+    hintHall:'大 厅', hintLiving:'客 厅', hintStudy:'书 房',
+    hintBedroom:'卧 室', hintBathroom:'卫 生 间',
+    backForest:'← 林 间', backOutside:'← 屋 外',
+
+    bioTopTitle:'艾尔森公寓 · 住户登记证明',
+    bioSubTitle:'LAKEVIEW APARTMENT · RESIDENT IDENTIFICATION',
+    bioName:'姓　名', bioFileNo:'档案编号', bioDate:'登记日期',
+    bioRole:'身　份', bioAddress:'住　址',
+    bioAddressVal:'艾尔森公寓 · 顶层 · 阁楼',
+    bioSectionProfile:'简 介 · PROFILE',
+    bioTextProfile:'【在这里写一句话介绍你自己。比如：一个喜欢在深夜写故事的人，偶尔画画，偶尔养一些不会开花的植物。】',
+    bioSectionHobbies:'爱 好 · 近 况 · 联 系',
+    bioHobby1:'【爱好：绘画、写作、游戏……】',
+    bioHobby2:'【正在做的事】',
+    bioHobby3:'【邮箱 / 社交账号 / 联系方式】',
+    bioSign:'签 字 / SIGNATURE',
+
+    freshTitle:'新 档 案 · 未 归 档',
+    freshSub:'UNFILED · RECENTLY WRITTEN',
+    freshNoteLabel:'正 文 · NOTE',
+    freshNoteText:'【这里的纸张更新一些，墨迹也还没干透。你可以在这里写一段较新的 OC 设定、最近发生的故事、或者尚未归入正式档案的草稿。】',
+    freshExcerptLabel:'摘 录 · EXCERPT',
+    freshExcerpt1:'【关键线索一】',
+    freshExcerpt2:'【关键线索二】',
+    freshExcerpt3:'【关键线索三】',
+    freshStampTop:'FRESH', freshStampBot:'未归档',
+    freshSign:'落 笔 / LAST WRITTEN',
+
+    mirrorTitle:'— 镜 中 之 声 —',
+    mirrorPh:'请输入密码查看档案',
+    mirrorErr:'输入错误',
+    folioTitle:'作 品 集',
+folioSub:'PORTFOLIO · SELECTED WORKS',
+    flowerImageHint:'约稿条图片 · 请替换',
+    freshAvatarHint:'此处放置图片',
+
+    /* OC 字段 */
+    fCode:'代号', fAge:'年龄', fRole:'身份',
+    fAppearance:'外貌', fPersonality:'性格',
+    fBackground:'背景', fRelations:'关系'
+  },
+
+  'zh-TW': {
+    hintForest:'找到進入公寓的關鍵物品',
+    hintHouse:'推 開 那 扇 門',
+    hintHall:'大 廳', hintLiving:'客 廳', hintStudy:'書 房',
+    hintBedroom:'臥 室', hintBathroom:'衛 生 間',
+    backForest:'← 林 間', backOutside:'← 屋 外',
+
+    bioTopTitle:'艾爾森公寓 · 住戶登記證明',
+    bioSubTitle:'LAKEVIEW APARTMENT · RESIDENT IDENTIFICATION',
+    bioName:'姓　名', bioFileNo:'檔案編號', bioDate:'登記日期',
+    bioRole:'身　份', bioAddress:'住　址',
+    bioAddressVal:'艾爾森公寓 · 頂層 · 閣樓',
+    bioSectionProfile:'簡 介 · PROFILE',
+    bioTextProfile:'【在這裡寫一句話介紹你自己。比如：一個喜歡在深夜寫故事的人，偶爾畫畫，偶爾養一些不會開花的植物。】',
+    bioSectionHobbies:'愛 好 · 近 況 · 聯 繫',
+    bioHobby1:'【愛好：繪畫、寫作、遊戲……】',
+    bioHobby2:'【正在做的事】',
+    bioHobby3:'【郵箱 / 社交賬號 / 聯繫方式】',
+    bioSign:'簽 字 / SIGNATURE',
+
+    freshTitle:'新 檔 案 · 未 歸 檔',
+    freshSub:'UNFILED · RECENTLY WRITTEN',
+    freshNoteLabel:'正 文 · NOTE',
+    freshNoteText:'【這裡的紙張更新一些，墨跡也還沒乾透。你可以在這裡寫一段較新的 OC 設定、最近發生的故事、或者尚未歸入正式檔案的草稿。】',
+    freshExcerptLabel:'摘 錄 · EXCERPT',
+    freshExcerpt1:'【關鍵線索一】',
+    freshExcerpt2:'【關鍵線索二】',
+    freshExcerpt3:'【關鍵線索三】',
+    freshStampTop:'FRESH', freshStampBot:'未歸檔',
+    freshSign:'落 筆 / LAST WRITTEN',
+
+    mirrorTitle:'— 鏡 中 之 聲 —',
+    mirrorPh:'請輸入密碼查看檔案',
+    mirrorErr:'輸入錯誤',
+    folioTitle:'作 品 集',
+folioSub:'PORTFOLIO · SELECTED WORKS',
+    flowerImageHint:'約稿條照片 · 請替換',
+    freshAvatarHint:'此處放置圖片',
+
+    fCode:'代號', fAge:'年齡', fRole:'身份',
+    fAppearance:'外貌', fPersonality:'性格',
+    fBackground:'背景', fRelations:'關係'
+  },
+
+  'en': {
+    hintForest:'Find the key to the apartment',
+    hintHouse:'Push the door open',
+    hintHall:'Hall', hintLiving:'Living Room', hintStudy:'Study',
+    hintBedroom:'Bedroom', hintBathroom:'Bathroom',
+    backForest:'← Forest', backOutside:'← Outside',
+
+    bioTopTitle:'ELSEN APARTMENT · RESIDENT REGISTRY',
+    bioSubTitle:'LAKEVIEW APARTMENT · RESIDENT IDENTIFICATION',
+    bioName:'NAME', bioFileNo:'FILE NO.', bioDate:'DATE',
+    bioRole:'ROLE', bioAddress:'ADDRESS',
+    bioAddressVal:'Elsen Apartment · Attic · Top Floor',
+    bioSectionProfile:'PROFILE',
+    bioTextProfile:'【Write a line about yourself here — e.g. someone who writes stories late at night, paints once in a while, and keeps a few plants that never bloom.】',
+    bioSectionHobbies:'HOBBIES · RECENT · CONTACT',
+    bioHobby1:'【Hobbies: painting, writing, games…】',
+    bioHobby2:'【What you are working on】',
+    bioHobby3:'【Email / Social / Contact】',
+    bioSign:'SIGNATURE',
+
+    freshTitle:'NEW FILE · UNFILED',
+    freshSub:'UNFILED · RECENTLY WRITTEN',
+    freshNoteLabel:'NOTE',
+    freshNoteText:'【The paper here is newer; the ink has not fully dried. Write a recent OC setting, an unfinished story, or a draft not yet archived.】',
+    freshExcerptLabel:'EXCERPT',
+    freshExcerpt1:'【Clue I】',
+    freshExcerpt2:'【Clue II】',
+    freshExcerpt3:'【Clue III】',
+    freshStampTop:'FRESH', freshStampBot:'UNFILED',
+    freshSign:'LAST WRITTEN',
+
+    mirrorTitle:'— VOICE IN THE MIRROR —',
+    mirrorPh:'Enter the password to view the file',
+    mirrorErr:'Wrong input',
+    folioTitle:'PORTFOLIO',
+folioSub:'PORTFOLIO · SELECTED WORKS',
+    flowerImageHint:'Commission Sheet Photo · Please Replace',
+    freshAvatarHint:'Place image here',
+
+    fCode:'Code', fAge:'Age', fRole:'Role',
+    fAppearance:'Appearance', fPersonality:'Personality',
+    fBackground:'Background', fRelations:'Relations'
+  }
+};
+
+const FIELD_MAP = {
+  '代号':'fCode', '年龄':'fAge', '身份':'fRole',
+  '外貌':'fAppearance', '性格':'fPersonality',
+  '背景':'fBackground', '关系':'fRelations'
+};
+
+let currentLang = 'zh-TW';
+let currentOC = null;
+
+function t(key){
+  const dict = I18N[currentLang] || {};
+  if(dict[key] !== undefined) return dict[key];
+  const fallback = I18N['zh-TW'];
+  return fallback[key] !== undefined ? fallback[key] : key;
+}
+
+function setLang(lang){
+  if(!I18N[lang]) lang = 'zh-TW';
+  currentLang = lang;
+
+  // 静态 textContent
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key = el.dataset.i18n;
+    const dict = I18N[lang] || {};
+    if(dict[key] !== undefined) el.textContent = dict[key];
+  });
+
+  // 输入框 placeholder
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{
+    const key = el.dataset.i18nPh;
+    const dict = I18N[lang] || {};
+    if(dict[key] !== undefined) el.placeholder = dict[key];
+  });
+
+  // 返回按钮文本（动态）
+  if(current === 'house') backBtn.textContent = t('backForest');
+  else if(ROOM_SCENES.includes(current)) backBtn.textContent = t('backOutside');
+
+  // 语言按钮激活
+  document.querySelectorAll('#langSwitch button').forEach(b=>{
+    b.classList.toggle('active', b.dataset.lang === lang);
+  });
+
+  // 重新渲染已打开的 OC 卡片
+  if(overlay.classList.contains('show') && currentOC) renderOC();
+    // 重新渲染已打开的新档案
+  if(freshOverlay.classList.contains('show')) renderFreshOC();
+
+  // 更新镜子错误提示
+  if(mirrorMsg && mirrorMsg.classList.contains('err')){
+    mirrorMsg.textContent = t('mirrorErr');
+  }
+}
+
+/* 语言切换按钮 */
+document.querySelectorAll('#langSwitch button').forEach(b=>{
+  b.addEventListener('click',e=>{
+    e.stopPropagation();
+    if(navLocked) return;
+    tick(220,0.08,0.04);
+    setLang(b.dataset.lang);
+  });
+});
+
+/* 单独渲染 OC 函数，便于语言切换时重绘 */
+function renderOC(){
+  if(!currentOC) return;
+  const oc = currentOC;
+  cardTitle.textContent = 'IDENTIFICATION · ' + oc.key;
+  cardName.textContent = oc.name;
+  cardSub.textContent = oc.sub;
+  document.getElementById('cardPortrait').textContent = oc.key;
+  cardBody.innerHTML = oc.rows.map(r=>{
+    const mapped = FIELD_MAP[r[0]];
+    const label = mapped ? t(mapped) : r[0];
+    return `<div class="row"><dt>${label}</dt><dd>${r[1]}</dd></div>`;
+  }).join('');
+}
+
+/* 渲染新档案（书房纸沓） */
+function renderFreshOC(){
+  const avatar = document.getElementById('freshAvatar');
+  const info   = document.getElementById('freshInfo');
+  if(!avatar || !info || !FRESH_OC) return;
+
+  // 头像
+  if(FRESH_OC.avatar){
+    avatar.innerHTML = `<img src="${FRESH_OC.avatar}" alt="">`;
+  } else {
+    avatar.innerHTML = `<span class="placeholder-hint">${t('freshAvatarHint')}</span>`;
+  }
+
+  // 字段（label 直接查 i18n）
+  info.innerHTML = FRESH_OC.rows.map(r=>{
+    const label = t(r[0]);
+    return `<div class="bio-row"><span class="bio-key">${label}</span><span class="bio-val">${r[1]}</span></div>`;
+  }).join('');
+}
+
+/* =========================================================
+   7. 启动
+   ========================================================= */
+setLang('zh-TW');   // 默认繁中
+goTo('forest');
+</script>
+</body>
+</html>
