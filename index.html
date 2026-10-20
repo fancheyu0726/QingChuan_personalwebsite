@@ -2246,6 +2246,141 @@ top:85%
   .folio-title{font-size:13px;letter-spacing:.36em;text-indent:.36em}
 }
 
+  /* ================= 作品集详情弹窗 ================= */
+.folio-detail-overlay{
+  position:fixed;inset:0;z-index:75;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(2,3,4,.92);
+  backdrop-filter:blur(6px);
+  opacity:0;pointer-events:none;
+  transition:opacity .3s ease;
+  padding:24px;
+}
+.folio-detail-overlay.show{opacity:1;pointer-events:auto}
+
+.folio-detail-card{
+  position:relative;
+  width:min(600px, 94vw);
+  max-height:90vh;
+  background:linear-gradient(160deg,#1a130e,#0b0806 60%,#15100c);
+  border:1px solid rgba(170,140,80,.5);
+  box-shadow:0 30px 80px rgba(0,0,0,.95), inset 0 0 70px rgba(80,50,20,.25);
+  transform:translateY(20px) scale(.96);
+  transition:transform .4s cubic-bezier(.2,.8,.3,1);
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+.folio-detail-overlay.show .folio-detail-card{transform:translateY(0) scale(1)}
+
+.folio-detail-img-wrap{
+  width:100%;
+  background:radial-gradient(ellipse at 50% 40%,#2a2118,#0a0705 78%);
+  border-bottom:1px solid rgba(170,140,80,.25);
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+.folio-detail-img-wrap img{
+  width:100%;height:auto;max-height:50vh;
+  object-fit:contain;
+}
+
+.folio-detail-content{
+  padding:24px 28px;
+  overflow-y:auto;
+}
+.folio-detail-title{
+  font-size:18px;
+  letter-spacing:.2em;
+  color:#e8d4a4;
+  margin-bottom:12px;
+  text-shadow:0 0 15px rgba(220,180,100,.3);
+}
+.folio-detail-meta{
+  font-size:11px;
+  color:rgba(180,150,100,.65);
+  letter-spacing:.15em;
+  margin-bottom:16px;
+  border-left:2px solid rgba(170,140,80,.5);
+  padding-left:8px;
+}
+.folio-detail-desc{
+  font-size:13px;
+  line-height:1.9;
+  color:#a8997a;
+  white-space:pre-wrap;
+  margin-bottom:20px;
+}
+.folio-detail-pdf-wrap{
+  margin-top: 18px;
+  width: 100%;
+  height: 420px;
+  border: 1px solid rgba(170,140,80,.3);
+  background: #111;
+  border-radius: 2px;
+  overflow: hidden;
+}
+.folio-detail-pdf-wrap iframe{
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.folio-detail-actions{
+  margin-top: 20px;
+  display: flex;
+  gap: 12px;
+}
+.folio-detail-link{
+  display:inline-block;
+  padding:10px 20px;
+  background:rgba(60,40,18,.4);
+  border:1px solid rgba(170,140,80,.5);
+  color:#d8c08a;
+  font-size:12px;
+  letter-spacing:.15em;
+  text-decoration:none;
+  transition:all .3s;
+}
+.folio-detail-link:hover{
+  background:rgba(100,70,30,.6);
+  border-color:rgba(220,180,100,.85);
+  box-shadow:0 0 20px rgba(220,170,90,.3);
+}
+.folio-detail-close{
+  position:absolute;
+  right:14px;top:14px;z-index:8;
+  width:32px;height:32px;
+  background:rgba(20,14,8,.85);
+  border:1px solid rgba(170,140,80,.5);
+  color:#c9b88a;font-size:14px;cursor:pointer;
+  transition:.3s;
+  border-radius:50%;
+}
+.folio-detail-close:hover{background:rgba(70,50,25,.92);color:#e8d9ac}
+.folio-text-cover {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  box-sizing: border-box;
+  background: linear-gradient(135deg, rgba(60,40,18,.4), rgba(20,10,5,.8));
+  color: #a8997a;
+  font-size: 14px;
+  letter-spacing: .15em;
+  text-align: center;
+  line-height: 1.5;
+  word-break: break-all;
+  text-shadow: 0 2px 4px rgba(0,0,0,.8);
+}
+@media (max-width:640px){
+  .folio-detail-card{max-height:95vh;}
+  .folio-detail-img-wrap img{max-height:35vh;}
+  .folio-detail-pdf-wrap{height: 320px;}
+  .folio-detail-content{padding:18px 20px;}
+}
+
 /* 手机 */
 @media (max-width:640px){
   .frame{padding:4px}
@@ -2976,6 +3111,29 @@ top:85%
     </div>
     <div class="folio-viewport">
       <div class="folio-track" id="folioTrack"></div>
+    </div>
+  </div>
+</div>
+
+  <!-- ========== 作品集详情弹窗 ========== -->
+<div class="folio-detail-overlay" id="folioDetailOverlay">
+  <div class="folio-detail-card">
+    <button class="folio-detail-close" id="folioDetailClose">✕</button>
+    <div class="folio-detail-img-wrap" id="folioDetailImgWrap">
+      <img id="folioDetailImg" src="" alt="">
+    </div>
+    <div class="folio-detail-content">
+      <h3 class="folio-detail-title" id="folioDetailTitle"></h3>
+      <div class="folio-detail-meta" id="folioDetailDate"></div>
+      <p class="folio-detail-desc" id="folioDetailDesc"></p>
+      
+      <div class="folio-detail-pdf-wrap" id="folioDetailPdfWrap" style="display:none;">
+        <iframe id="folioDetailPdf" src="" frameborder="0"></iframe>
+      </div>
+
+      <div class="folio-detail-actions">
+        <a class="folio-detail-link" id="folioDetailLink" href="#" target="_blank" rel="noopener" style="display:none;">前往查看 / VIEW MORE</a>
+      </div>
     </div>
   </div>
 </div>
@@ -4045,26 +4203,31 @@ const folioTrack   = document.getElementById('folioTrack');
 
 /* ---- 渲染作品集内容 ---- */
 function renderFolio(){
-  const cell = w => `
-    <div class="folio-item">
-      <div class="folio-thumb">${
-        w.img ? `<img src="${w.img}" alt="">` : `<span class="folio-ph">✦</span>`
-      }</div>
+  const cell = (w, idx) => {
+    const isClickable = !!w.popup;
+    const coverContent = w.img 
+      ? `<img src="${w.img}" alt="" style="${isClickable ? 'transition:opacity .3s;' : ''}">`
+      : `<div class="folio-text-cover">${w.title}</div>`;
+
+    return `
+    <div class="folio-item ${isClickable ? 'has-popup' : ''}" data-index="${idx}" style="${isClickable ? 'cursor:pointer;' : ''}">
+      <div class="folio-thumb" style="${isClickable ? 'transition:transform .3s;' : ''}">
+        ${coverContent}
+      </div>
       <div class="folio-name">${w.title}</div>
     </div>`;
+  };
 
-  const half = `<div class="folio-half"><div class="folio-grid">${
-    PORTFOLIO.map(cell).join('')
+  const buildHalf = () => `<div class="folio-half"><div class="folio-grid">${
+    PORTFOLIO.map((w, i) => cell(w, i)).join('')
   }</div></div>`;
 
-  /* 两份首尾相接 → CSS 滚 -50% 时无缝循环 */
-  folioTrack.innerHTML = half + half;
+  folioTrack.innerHTML = buildHalf() + buildHalf();
 }
 
-/* ---- 滚动控制：自动 + 手动，共用一个 offset ---- */
+/* ---- 滚动控制 ---- */
 const folioViewport = document.querySelector('.folio-viewport');
-
-const FOLIO_AUTO = 28;      // 自动滚动速度 px/s
+const FOLIO_AUTO = 28;
 
 let folioOffset   = 0;
 let folioVel      = 0;
@@ -4129,14 +4292,13 @@ function folioReset(){
   folioStart();
 }
 
-/* ---- 鼠标滚轮 ---- */
+/* ---- 鼠标滚轮与触摸滑动 ---- */
 folioViewport.addEventListener('wheel', e=>{
   if(!folioOverlay.classList.contains('show')) return;
   e.preventDefault();
   folioOffset += e.deltaY;
 }, {passive:false});
 
-/* ---- 触摸滑动 ---- */
 let folioTouchY = 0, folioTouchT = 0;
 
 folioViewport.addEventListener('touchstart', e=>{
@@ -4180,18 +4342,16 @@ window.addEventListener('resize', ()=>{
   const rows = document.querySelectorAll('.shelf-row');
   if(!rows.length) return;
 
-  /* 作品集固定藏在第 2 层（index 1），具体第几本随机 */
   const FOLIO_ROW = 1;
 
   rows.forEach((row, ri)=>{
     row.innerHTML = '';
 
-    const count = 9 + Math.floor(Math.random()*4);   // 每层 9~12 本
+    const count = 9 + Math.floor(Math.random()*4);
     const raw = [];
     for(let i=0;i<count;i++) raw.push(0.65 + Math.random()*0.8);
     const total = raw.reduce((a,b)=>a+b,0);
 
-    /* 避开两端，免得贴着书架边缘太显眼 */
     const folioIdx = (ri === FOLIO_ROW)
       ? 2 + Math.floor(Math.random()*(count-4))
       : -1;
@@ -4218,7 +4378,6 @@ window.addEventListener('resize', ()=>{
     }
   });
 
-  /* ---- 绑定唯一那本可点的书 ---- */
   const folioBookEl = document.getElementById('folioBook');
   if(!folioBookEl) return;
 
@@ -4232,6 +4391,7 @@ window.addEventListener('resize', ()=>{
     if(mirrorOverlay.classList.contains('show')) return;
     if(flowerOverlay.classList.contains('show')) return;
     if(folioOverlay.classList.contains('show')) return;
+    if(folioDetailOverlay.classList.contains('show')) return;
 
     tick(300,0.13,0.05);
     renderFolio();
@@ -4240,7 +4400,83 @@ window.addEventListener('resize', ()=>{
   });
 })();
 
-/* ---- 关闭 ---- */
+/* ---- 详情弹窗控制 ---- */
+const folioDetailOverlay = document.getElementById('folioDetailOverlay');
+const folioDetailImg = document.getElementById('folioDetailImg');
+const folioDetailImgWrap = document.getElementById('folioDetailImgWrap');
+const folioDetailTitle = document.getElementById('folioDetailTitle');
+const folioDetailDate = document.getElementById('folioDetailDate');
+const folioDetailDesc = document.getElementById('folioDetailDesc');
+const folioDetailPdfWrap = document.getElementById('folioDetailPdfWrap');
+const folioDetailPdf = document.getElementById('folioDetailPdf');
+const folioDetailLink = document.getElementById('folioDetailLink');
+
+function openFolioDetail(index) {
+  const data = PORTFOLIO[index];
+  if(!data || !data.popup) return;
+  
+  const p = data.popup;
+  
+  if (p.img || data.img) {
+    folioDetailImg.src = p.img || data.img;
+    folioDetailImgWrap.style.display = 'flex';
+  } else {
+    folioDetailImgWrap.style.display = 'none';
+  }
+
+  folioDetailTitle.textContent = data.title;
+  folioDetailDesc.textContent = p.desc || '';
+
+  if(p.date) {
+    folioDetailDate.textContent = `创作时间 · ${p.date}`;
+    folioDetailDate.style.display = 'block';
+  } else {
+    folioDetailDate.style.display = 'none';
+  }
+
+  if(p.pdf) {
+    folioDetailPdf.src = p.pdf;
+    folioDetailPdfWrap.style.display = 'block';
+  } else {
+    folioDetailPdf.src = '';
+    folioDetailPdfWrap.style.display = 'none';
+  }
+
+  if(p.link) {
+    folioDetailLink.href = p.link;
+    folioDetailLink.style.display = 'inline-block';
+  } else {
+    folioDetailLink.style.display = 'none';
+  }
+  
+  folioStop();
+  folioDetailOverlay.classList.add('show');
+}
+
+function closeFolioDetail() {
+  folioDetailOverlay.classList.remove('show');
+  folioStart();
+}
+
+document.getElementById('folioDetailClose').addEventListener('click', closeFolioDetail);
+folioDetailOverlay.addEventListener('click', e => {
+  if(e.target === folioDetailOverlay) closeFolioDetail();
+});
+
+/* ---- 监听作品集格子的点击 ---- */
+folioTrack.addEventListener('click', e => {
+  const item = e.target.closest('.folio-item.has-popup');
+  if(!item) return;
+  if(Math.abs(folioVel) > 50) return;
+
+  const idx = parseInt(item.dataset.index, 10);
+  if(!isNaN(idx)) {
+    tick(280,0.1,0.05);
+    openFolioDetail(idx);
+  }
+});
+
+/* ---- 关闭作品集 ---- */
 function closeFolio(){
   folioOverlay.classList.remove('show');
   folioStop();
