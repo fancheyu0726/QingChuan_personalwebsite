@@ -4894,6 +4894,34 @@ sidebarClose.addEventListener('click', (e) => {
   tick(180, 0.08, 0.04);
   sidebar.classList.remove('show');
 });
+  /* =========================================================
+   9. 侧边栏内部功能绑定
+   ========================================================= */
+
+// 点击【个人简介】按钮
+document.getElementById('sbBtnBio').addEventListener('click', (e) => {
+  e.preventDefault();
+  // 先关掉侧边栏
+  document.getElementById('sidebar').classList.remove('show');
+  
+  tick(320,0.35,0.05);
+  // 打开个人简介弹窗（复用你原本的变量）
+  setTimeout(()=>bioOverlay.classList.add('show'),120);
+});
+
+// 点击【作品集】按钮
+document.getElementById('sbBtnFolio').addEventListener('click', (e) => {
+  e.preventDefault();
+  // 先关掉侧边栏
+  document.getElementById('sidebar').classList.remove('show');
+  
+  tick(300,0.13,0.05);
+  // 渲染并打开作品集弹窗
+  renderFolio();
+  folioOverlay.classList.add('show');
+  requestAnimationFrame(folioReset);
+});
+  
 </script>
 </body>
 </html>
