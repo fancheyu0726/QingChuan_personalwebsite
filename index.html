@@ -5093,6 +5093,21 @@ document.getElementById('sbBtnFolio').addEventListener('click', (e) => {
 });
 
   /* =========================================================
+   10. 侧边栏 OC 折叠菜单控制
+   ========================================================= */
+const ocToggleBtn = document.getElementById('ocToggleBtn');
+const sidebarAccordion = ocToggleBtn.parentElement;
+
+ocToggleBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  // 切换 open 类名，控制 CSS 箭头旋转和列表高度
+  sidebarAccordion.classList.toggle('open');
+  
+  // 加个轻微音效
+  tick(sidebarAccordion.classList.contains('open') ? 240 : 180, 0.05, 0.03);
+});
+
+  /* =========================================================
    11. 侧边栏 OC 点击打开档案
    ========================================================= */
 document.getElementById('ocList').addEventListener('click', (e) => {
