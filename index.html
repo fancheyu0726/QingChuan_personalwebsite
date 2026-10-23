@@ -5091,6 +5091,40 @@ document.getElementById('sbBtnFolio').addEventListener('click', (e) => {
   folioOverlay.classList.add('show');
   requestAnimationFrame(folioReset);
 });
+
+  /* =========================================================
+   11. 侧边栏 OC 点击打开档案
+   ========================================================= */
+document.getElementById('ocList').addEventListener('click', (e) => {
+  const link = e.target.closest('.oc-link');
+  if(!link) return;
+  
+  // 如果没有 data-oc 属性，说明是纯文本，不触发弹窗
+  const idxStr = link.dataset.oc;
+  if(idxStr === undefined) return; 
+  
+  const idx = parseInt(idxStr, 10);
+  const oc = OCS[idx];
+  if(!oc) return;
+
+  // 1. 关闭侧边栏
+  document.getElementById('sidebar').classList.remove('show');
+
+  // 2. 防止其他弹窗干扰，先全关掉
+  overlay.classList.remove('show');
+  bioOverlay.classList.remove('show');
+  freshOverlay.classList.remove('show');
+  flowerOverlay.classList.remove('show');
+  folioOverlay.classList.remove('show');
+  folioDetailOverlay.classList.remove('show');
+  mirrorOverlay.classList.remove('show');
+
+  // 3. 打开对应的档案卡
+  tick(260, 0.1, 0.05);
+  currentOC = oc;
+  renderOC();
+  overlay.classList.add('show');
+});
   
 </script>
 </body>
