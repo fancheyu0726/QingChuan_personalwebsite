@@ -2429,19 +2429,20 @@ top:85%
   .bio-stamp{width:64px;height:64px}
   .bio-stamp-mid{font-size:10px}
 }
-  /* ================= 侧边栏 (Sidebar) ================= */
+
+/* ================= 全新侧边栏 (Sidebar) ================= */
 
 /* 触发按钮 */
 #sidebarToggle {
   position: fixed;
   left: 22px;
-  top: 68px; /* 在返回按钮的下方 */
+  top: 68px;
   z-index: 90;
   width: 44px;
   height: 44px;
-  background: rgba(10, 10, 8, .55);
-  border: 1px solid rgba(160, 140, 95, .35);
-  color: #a99a72;
+  background: rgba(10, 10, 8, .65);
+  border: 1px solid rgba(200, 170, 110, .4);
+  color: #c9b88a;
   font-size: 20px;
   display: flex;
   align-items: center;
@@ -2449,26 +2450,32 @@ top:85%
   cursor: pointer;
   backdrop-filter: blur(4px);
   transition: all .3s;
+  box-shadow: 0 4px 12px rgba(0,0,0,.5);
 }
 #sidebarToggle:hover {
-  background: rgba(40, 34, 22, .8);
-  color: #e2d4ab;
+  background: rgba(40, 34, 22, .9);
+  color: #f0dca8;
+  border-color: rgba(240, 220, 168, .8);
+  box-shadow: 0 0 15px rgba(235, 195, 115, .4);
 }
 
 /* 侧边栏本体 */
 #sidebar {
   position: fixed;
   top: 0;
-  left: -350px; /* 默认隐藏在屏幕左侧外 */
-  width: 320px;
+  left: -360px; /* 加宽到340px，更大气 */
+  width: 340px;
   height: 100%;
   z-index: 95;
   background: 
-    linear-gradient(160deg, rgba(20, 15, 10, .95), rgba(10, 7, 5, .98)),
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3'/></filter><rect width='100' height='100' filter='url(%23n)' opacity='.05'/></svg>");
-  backdrop-filter: blur(10px);
-  border-right: 1px solid rgba(160, 140, 95, .4); /* 边框在右侧 */
-  box-shadow: 10px 0 40px rgba(0, 0, 0, .9); /* 阴影向右投 */
+    linear-gradient(160deg, rgba(30, 22, 16, .98), rgba(12, 9, 6, .99)),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3'/></filter><rect width='100' height='100' filter='url(%23n)' opacity='.04'/></svg>");
+  backdrop-filter: blur(12px);
+  border-right: 1px solid rgba(200, 170, 110, .4);
+  box-shadow: 
+    15px 0 50px rgba(0, 0, 0, .95), 
+    inset -5px 0 20px rgba(0, 0, 0, .8),
+    inset 1px 0 0 rgba(200, 170, 110, .15);
   transition: left 0.45s cubic-bezier(.2, .8, .3, 1);
   display: flex;
   flex-direction: column;
@@ -2481,18 +2488,20 @@ top:85%
 
 /* 侧边栏头部 */
 .sidebar-header {
-  padding: 24px 20px;
-  border-bottom: 1px solid rgba(160, 140, 95, .25);
+  padding: 28px 24px 20px;
+  border-bottom: 1px dashed rgba(200, 170, 110, .3);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: linear-gradient(to bottom, rgba(0,0,0,.4), transparent);
 }
 .sidebar-title {
-  font-size: 14px;
-  letter-spacing: .3em;
-  color: #d8c08a;
-  text-indent: .3em;
-  text-shadow: 0 0 10px rgba(200, 160, 90, .3);
+  font-size: 16px;
+  letter-spacing: .6em;
+  text-indent: .6em;
+  color: #e8d4a4;
+  font-weight: bold;
+  text-shadow: 0 0 15px rgba(235, 195, 115, .6);
 }
 .sidebar-close {
   background: none;
@@ -2500,50 +2509,178 @@ top:85%
   color: #a99a72;
   font-size: 16px;
   cursor: pointer;
-  transition: color .3s;
+  transition: all .3s;
 }
 .sidebar-close:hover {
-  color: #e2d4ab;
+  color: #f0dca8;
+  transform: rotate(90deg);
 }
 
-/* 侧边栏内容区（留白，以后放东西） */
+/* 侧边栏内容区 */
 .sidebar-content {
   flex: 1;
-  padding: 20px;
+  padding: 16px 0;
   overflow-y: auto;
-  color: #7a6a50;
-  font-size: 12px;
-  letter-spacing: .1em;
-  text-align: center;
+}
+.sidebar-content::-webkit-scrollbar { width: 4px; }
+.sidebar-content::-webkit-scrollbar-thumb { background: rgba(200, 170, 110, .3); border-radius: 2px; }
+
+/* 菜单列表 */
+.sidebar-menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+}
+
+/* 按钮文字和悬停效果 */
+.sidebar-menu a, .sidebar-accordion-header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-style: italic;
+  padding: 14px 24px;
+  color: #c9b88a;
+  font-size: 14px;
+  letter-spacing: .15em;
+  text-decoration: none;
+  border-left: 3px solid transparent;
+  transition: all .3s ease;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
 }
 
-  .sidebar-text {
+/* 悬停时的左侧金线渐变 */
+.sidebar-menu a::before, .sidebar-accordion-header::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 20%; bottom: 20%;
+  width: 3px;
+  background: linear-gradient(to bottom, transparent, #d8c08a, transparent);
+  opacity: 0;
+  transition: opacity .3s;
+}
+
+.sidebar-menu a:hover, .sidebar-accordion-header:hover {
+  background: linear-gradient(90deg, rgba(200, 170, 110, .15), transparent);
+  color: #f0dca8;
+  border-left-color: #d8c08a;
+  padding-left: 30px;
+  text-shadow: 0 0 10px rgba(240, 220, 168, .3);
+}
+
+.sidebar-menu a:hover::before, .sidebar-accordion-header:hover::before {
+  opacity: 1;
+}
+
+/* 特殊装饰符号 */
+.sidebar-menu .deco {
+  color: #8a6038;
+  margin-right: 12px;
+  font-size: 10px;
+  transition: color .3s;
+}
+.sidebar-menu a:hover .deco {
+  color: #f0dca8;
+}
+
+/* 分割线 */
+.sidebar-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(200, 170, 110, .3), transparent);
+  margin: 16px 24px;
+}
+
+/* ================= 折叠菜单 (OC) ================= */
+.sidebar-accordion {
+  margin-bottom: 4px;
+}
+
+/* 箭头样式 */
+.oc-arrow {
+  display: inline-block;
+  font-size: 12px;
+  margin-right: 12px;
+  color: #8a6038;
+  transition: transform .3s cubic-bezier(.2, .8, .3, 1), color .3s;
+}
+.sidebar-accordion.open .oc-arrow {
+  transform: rotate(90deg);
+  color: #f0dca8;
+}
+
+/* 子列表容器 */
+.sidebar-oc-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height .4s cubic-bezier(.2, .8, .3, 1);
+  background: rgba(0, 0, 0, .4);
+  box-shadow: inset 0 4px 12px rgba(0,0,0,.6);
+}
+.sidebar-accordion.open .sidebar-oc-list {
+  max-height: 2000px;
+}
+
+/* 子列表的每一项 */
+.sidebar-oc-list li {
+  padding: 0;
+  margin: 0;
+}
+
+/* 子菜单文字 */
+.oc-link {
   display: block;
-  padding: 12px 24px;
-  color: #a99a72; /* 和按钮颜色一致 */
+  padding: 10px 24px 10px 46px;
+  color: #9c8b6a;
+  font-size: 13px;
+  letter-spacing: .1em;
+  transition: all .25s;
+  cursor: pointer;
+  position: relative;
+}
+/* 子菜单前的小菱形点缀 */
+.oc-link::before {
+  content: '◇';
+  position: absolute;
+  left: 28px;
+  font-size: 9px;
+  color: rgba(200, 170, 110, .3);
+  transition: all .25s;
+}
+
+.oc-link:hover {
+  color: #e8d4a4;
+  background: rgba(200, 170, 110, .08);
+  padding-left: 50px; /* 文字向右微动 */
+}
+.oc-link:hover::before {
+  content: '◆';
+  color: #d8c08a;
+}
+
+/* 纯文本样式（无悬停高亮） */
+.sidebar-text {
+  display: block;
+  padding: 14px 24px;
+  color: #a99a72;
   font-size: 13px;
   letter-spacing: .15em;
-  user-select: text; /* 允许鼠标选中复制文字 */
+  user-select: text;
+  font-style: italic;
+  opacity: .8;
 }
 
-/* 手机端适配：按钮尺寸与位置微调 */
+/* 手机端适配 */
 @media (max-width:640px){
-  #sidebarToggle {
-    left: 12px;
-    top: 56px;
-    width: 36px;
-    height: 36px;
-    font-size: 18px;
-  }
-  #sidebar {
-    width: 280px;
-    left: -300px;
-  }
+  #sidebarToggle { left: 12px; top: 56px; width: 36px; height: 36px; font-size: 18px; }
+  #sidebar { width: 300px; left: -320px; }
+  .sidebar-menu a, .sidebar-accordion-header { font-size: 13px; padding: 12px 20px; }
+  .oc-link { padding-left: 40px; font-size: 12px; }
+  .oc-link::before { left: 24px; }
 }
+  
 </style>
 </head>
 <body>
@@ -3288,16 +3425,49 @@ top:85%
   
   <div class="sidebar-content">
     <ul class="sidebar-menu">
-      <!-- 功能按钮：点击后触发某些动作 -->
-      <li><a href="#" id="sbBtnBio">◆ 个人简介</a></li>
-      <li><a href="#" id="sbBtnFolio">◆ 作品集</a></li>
+      <!-- 主导航 -->
+      <li><a href="#" id="sbBtnBio"><span class="deco">✦</span> 个人简介</a></li>
+      <li><a href="#" id="sbBtnFolio"><span class="deco">✦</span> 作品集</a></li>
       
-      <!-- 分割线 -->
       <li class="sidebar-divider"></li>
 
-      <!-- 外部链接：点击后跳转 -->
-      <li><a href="https://xhslink.cn/o/8vVdmNYKBaA" target="_blank">◆ 小红书</a></li>
-      <li class="sidebar-text">◆ 联系我（QQ）：3586962368</li>
+      <!-- 折叠菜单 -->
+      <li class="sidebar-accordion">
+        <div class="sidebar-accordion-header" id="ocToggleBtn">
+          <span class="oc-arrow">▶</span> 所有 OC 档案
+        </div>
+        
+        <ul class="sidebar-oc-list" id="ocList">
+          <!-- 大厅 -->
+          <li><span class="oc-link" data-oc="0">Ⅰ · 大厅画框一</span></li>
+          <li><span class="oc-link" data-oc="1">Ⅱ · 大厅画框二</span></li>
+          <li><span class="oc-link" data-oc="2">Ⅲ · 大厅画框三</span></li>
+          <li><span class="oc-link" data-oc="3">Ⅳ · 大厅画框四</span></li>
+          <li><span class="oc-link" data-oc="4">Ⅴ · 大厅画框五</span></li>
+          <li><span class="oc-link" data-oc="5">Ⅵ · 大厅画框六</span></li>
+
+          <!-- 客厅 -->
+          <li><span class="oc-link" data-oc="6">Ⅰ · 客厅画框一</span></li>
+          <li><span class="oc-link" data-oc="7">Ⅱ · 客厅画框二</span></li>
+          <li><span class="oc-link" data-oc="8">Ⅲ · 客厅画框三</span></li>
+          <li><span class="oc-link" data-oc="9">Ⅳ · 客厅画框四</span></li>
+          <li><span class="oc-link" data-oc="10">Ⅴ · 客厅画框五</span></li>
+
+          <!-- 卧室、卫生间、书房... (索引 11~18) -->
+          <li><span class="oc-link" data-oc="11">卧室 · 档案一</span></li>
+          <li><span class="oc-link" data-oc="12">卧室 · 档案二</span></li>
+          <li><span class="oc-link" data-oc="13">卧室 · 档案三</span></li>
+          
+          <!-- 未归档的（无 data-oc，点击无弹窗） -->
+          <li><span class="oc-link">未归档 · 待补充</span></li>
+        </ul>
+      </li>
+
+      <li class="sidebar-divider"></li>
+
+      <!-- 外部链接 -->
+      <li><a href="https://xhslink.cn/o/8vVdmNYKBaA" target="_blank"><span class="deco">✧</span> 小红书</a></li>
+      <li class="sidebar-text">联系方式（QQ）：3586962368</li>
     </ul>
   </div>
 </aside>
